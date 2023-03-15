@@ -46,6 +46,16 @@ cd android
 ./gradlew clean
 ```
 
+### 修改 app 图标和名称
+
+- 替换 `android/app/src/main/res/mipmap-hdpi/ic_launcher.png` 图标
+
+- 修改 `android/app/src/main/res/values/strings.xml` app_name
+
+  ```xml
+  <string name="app_name">应用名称</string>
+  ```
+
 ### 针对不同的 CPU 架构生成 APK 以减小 APK 文件的大小
 
 ```diff
@@ -139,6 +149,19 @@ import org.devio.rn.splashscreen.SplashScreen;
   android:background="@drawable/launch_screen"
   android:orientation="vertical">
 </LinearLayout>
+```
+
+添加 colors 定义和透明度
+
+```xml
+<!-- android/app/src/main/res/values/colors.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark">#000000</color>
+</resources>
+
+<!-- android/app/src/main/res/values/styles.xml -->
+<item name="android:windowIsTranslucent">true</item>
 ```
 
 在首页展示时关闭启动页 `App.js`
