@@ -93,6 +93,10 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
+    // 关闭 PNG等文件合法性检查
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
+
     namespace "com.awesomeproject"
     defaultConfig {
         applicationId "com.awesomeproject"

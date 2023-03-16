@@ -50,10 +50,12 @@ cd android
 
 - 替换 `android/app/src/main/res/mipmap-hdpi/ic_launcher.png` 图标
 
-- 修改 `android/app/src/main/res/values/strings.xml` app_name
+- 修改 `android/app/src/main/AndroidManifest.xml` android:label
 
   ```xml
-  <string name="app_name">应用名称</string>
+  <activity android:label="应用名称">
+    <!-- ... -->
+  </activity>
   ```
 
 ### 针对不同的 CPU 架构生成 APK 以减小 APK 文件的大小
@@ -173,3 +175,17 @@ useEffect(() => {
   SplashScreen.hide(); // hide splash screen
 }, []);
 ```
+
+## 安卓打包各类问题
+
+- 打包资源合并失败 `Task :app:mergeReleaseResources FAILED`
+  A：很大可能是不同类型的文件重名了，关闭文件合法性检查
+  ```java
+  // android/app/build.gradle
+  // 关闭PNG等文件合法性检查
+  android {
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
+    ...
+  }
+  ```
