@@ -35,6 +35,16 @@ System:
     *react-native*: Not Found
 ```
 
+## 本地启动
+
+```sh
+# 查看本地连接的设备
+adb devices
+
+# 安卓启动
+yarn android
+```
+
 ## 安卓打包 apk
 
 ```sh

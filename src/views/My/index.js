@@ -1,18 +1,43 @@
 import {StyleSheet, Text, View, Button} from 'react-native';
-import React from 'react';
-import {NativeModules} from 'react-native';
+import React, {useEffect} from 'react';
+import RNCallKeep from 'react-native-callkeep';
 
 const My = () => {
+  useEffect(() => {
+    // RNCallKeep.setup({
+    //   ios: {
+    //     appName: 'My App Name',
+    //   },
+    //   android: {
+    //     alertTitle: 'Permissions required',
+    //     alertDescription:
+    //       'This application needs to access your phone accounts',
+    //     cancelButton: 'Cancel',
+    //     okButton: 'ok',
+    //   },
+    // });
+    // RNCallKeep.addEventListener('didReceiveStartCallAction', data => {
+    //   console.log('didReceiveStartCallAction');
+    //   // Automatically answer incoming calls
+    //   // RNCallKeep.answerIncomingCall(data.callUUID);
+    // });
+    // RNCallKeep.addEventListener('answerCall', ({callUUID}) => {
+    //   // Handle answer call action here
+    //   console.log('answerCall');
+    // });
+    // RNCallKeep.addEventListener('endCall', ({callUUID}) => {
+    //   // Handle end call action here
+    //   console.log('endCall');
+    // });
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>旅行者，你将去往何方～</Text>
       <Button
         title="提示语"
         onPress={() => {
-          NativeModules.ToastExample.show(
-            'Awesome222',
-            NativeModules.ToastExample.SHORT,
-          );
+          // ToastModule.show('hhhhh', ToastModule.LONG);
         }}
       />
     </View>

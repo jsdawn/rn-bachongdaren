@@ -24,7 +24,7 @@ public class ToastModule extends ReactContextBaseJavaModule {
 
   @Override
   public String getName() {
-    return "ToastExample";
+    return "ToastModule";
   }
 
   @Override
