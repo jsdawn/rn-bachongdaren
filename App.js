@@ -11,6 +11,7 @@ import Character from './src/views/Character';
 import CharacterDetail from './src/views/Character/Detail';
 import MyIndex from './src/views/My';
 import User from './src/views/My/User';
+import PhoneState from './src/views/My/PhoneState';
 
 const CharacterStack = createNativeStackNavigator();
 const CharacterStackScreen = () => (
@@ -33,7 +34,7 @@ const MyStackScreen = () => (
   <MyStack.Navigator>
     <MyStack.Screen
       name="MyIndex"
-      component={MyIndex}
+      component={PhoneState}
       options={{title: '魔神任务'}}
     />
     <MyStack.Screen
