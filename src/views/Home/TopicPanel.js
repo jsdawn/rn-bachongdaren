@@ -1,9 +1,35 @@
-import {StyleSheet, Text, View, Image} from 'react-native';
+import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
 import React from 'react';
 import {Button, makeStyles} from '@rneui/themed';
+import {TagCloud} from 'react-tagcloud/rn';
 
 const TopicPanel = () => {
   const styles = useStyles();
+
+  const data = [
+    {value: 'JavaScript', count: 38},
+    {value: 'React', count: 30},
+    {value: 'Nodejs', count: 28},
+    {value: 'Express.js', count: 25},
+    {value: 'HTML5', count: 33},
+    {value: 'MongoDB', count: 18},
+    {value: 'CSS3', count: 20},
+    {value: 'JavaScript1', count: 38},
+    {value: 'React1', count: 30},
+    {value: 'Nodejs1', count: 28},
+    {value: 'Express.js1', count: 25},
+    {value: 'HTML51', count: 33},
+    {value: 'MongoDB1', count: 18},
+    {value: 'CSS31', count: 20},
+  ];
+
+  const TagRenderer = (tag, size, color) => (
+    <View style={styles.tagCloudItem} key={tag.value}>
+      <TouchableOpacity onPress={() => console.log(tag.value)}>
+        <Text style={{color: color, fontSize: size}}>{tag.value}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -27,11 +53,18 @@ const TopicPanel = () => {
       </View>
 
       <View style={styles.topicWrap}>
-        <Text>词云图</Text>
+        <TagCloud
+          minSize={12}
+          maxSize={35}
+          tags={data}
+          renderer={TagRenderer}
+        />
       </View>
 
       <View style={styles.loginBar}>
-        <Text style={{color: '#fff'}}>使用帮助</Text>
+        <Text onPress={() => Alert.alert('使用帮助')} style={{color: '#fff'}}>
+          使用帮助
+        </Text>
         <Button
           type="outline"
           buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}>
@@ -61,6 +94,7 @@ const useStyles = makeStyles(theme => ({
     flex: 1,
     backgroundColor: '#f6f6f7',
   },
+
   header: {
     padding: 25,
     flexDirection: 'row',
@@ -72,9 +106,13 @@ const useStyles = makeStyles(theme => ({
     height: 55,
     borderRadius: 55,
   },
+
   topicWrap: {
+    paddingHorizontal: 260,
     flex: 1,
+    zIndex: 10,
   },
+  tagCloudItem: {},
   loginBar: {
     paddingHorizontal: 20,
     height: 60,
@@ -83,6 +121,7 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     backgroundColor: theme.colors.primary,
   },
+
   chatWrap: {
     position: 'absolute',
     bottom: 60,
@@ -93,6 +132,7 @@ const useStyles = makeStyles(theme => ({
     width: 260,
     height: 250,
   },
+
   bubble: {
     position: 'relative',
     marginTop: 15,
@@ -106,7 +146,6 @@ const useStyles = makeStyles(theme => ({
   },
   bubbleArrow: {
     position: 'absolute',
-    zIndex: 10,
     right: -20,
     top: 40,
     width: 0,
@@ -119,7 +158,6 @@ const useStyles = makeStyles(theme => ({
   },
   bubbleArrow2: {
     position: 'absolute',
-    zIndex: 20,
     right: -19,
     top: 40,
     width: 0,
