@@ -1,12 +1,14 @@
 import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
-import React from 'react';
+import React, {useState} from 'react';
 import {Button, makeStyles} from '@rneui/themed';
 import {TagCloud} from 'react-tagcloud/rn';
+import UserLoginDialog from './components/UserLoginDialog';
 
 const TopicPanel = () => {
   const styles = useStyles();
 
-  const data = [
+  const [visible, setVisible] = useState(false);
+  const [data, setData] = useState([
     {value: 'JavaScript', count: 38},
     {value: 'React', count: 30},
     {value: 'Nodejs', count: 28},
@@ -14,19 +16,26 @@ const TopicPanel = () => {
     {value: 'HTML5', count: 33},
     {value: 'MongoDB', count: 18},
     {value: 'CSS3', count: 20},
-    {value: 'JavaScript1', count: 38},
-    {value: 'React1', count: 30},
-    {value: 'Nodejs1', count: 28},
-    {value: 'Express.js1', count: 25},
-    {value: 'HTML51', count: 33},
-    {value: 'MongoDB1', count: 18},
-    {value: 'CSS31', count: 20},
-  ];
+  ]);
+
+  const changeTopics = () => {
+    setData([
+      {value: 'JavaScript1', count: 38},
+      {value: 'React1', count: 30},
+      {value: 'Nodejs1', count: 28},
+      {value: 'Express.js1', count: 25},
+      {value: 'HTML51', count: 33},
+      {value: 'MongoDB1', count: 18},
+      {value: 'CSS31', count: 20},
+    ]);
+  };
 
   const TagRenderer = (tag, size, color) => (
-    <View style={styles.tagCloudItem} key={tag.value}>
-      <TouchableOpacity onPress={() => console.log(tag.value)}>
-        <Text style={{color: color, fontSize: size}}>{tag.value}</Text>
+    <View key={tag.value} style={styles.tagItemWrap}>
+      <TouchableOpacity
+        style={styles.tagItem}
+        onPress={() => console.log(tag.value)}>
+        <Text style={{...styles.tagText, fontSize: size}}>{tag.value}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -42,12 +51,8 @@ const TopicPanel = () => {
           buttonStyle={styles.hdButton}
           size="lg"
           titleStyle={{fontSize: 28}}
-          icon={{
-            name: 'reload1',
-            type: 'ant-design',
-            color: '#fff',
-            size: 20,
-          }}>
+          icon={{name: 'reload1', type: 'ant-design', color: '#fff', size: 20}}
+          onPress={changeTopics}>
           换一批
         </Button>
       </View>
@@ -67,22 +72,25 @@ const TopicPanel = () => {
         </Text>
         <Button
           type="outline"
-          buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}>
-          账号登录
+          buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
+          onPress={() => setVisible(true)}>
+          账号登陆
         </Button>
       </View>
 
       <View style={styles.chatWrap}>
+        <Image
+          style={styles.chatImg}
+          source={require('../../image/girl.png')}
+        />
         <View style={styles.bubble}>
           <View style={styles.bubbleArrow}></View>
           <View style={styles.bubbleArrow2}></View>
           <Text style={styles.bubbleMsg}>同学可以先登陆账号哦～</Text>
         </View>
-        <Image
-          style={styles.chatImg}
-          source={require('../../image/girl.png')}
-        />
       </View>
+
+      <UserLoginDialog visible={visible} setVisible={setVisible} />
     </View>
   );
 };
@@ -108,11 +116,31 @@ const useStyles = makeStyles(theme => ({
   },
 
   topicWrap: {
-    paddingHorizontal: 260,
+    paddingHorizontal: 200,
+    paddingBottom: 25,
     flex: 1,
-    zIndex: 10,
+    justifyContent: 'center',
   },
-  tagCloudItem: {},
+  tagItemWrap: {
+    margin: 10,
+    elevation: 2,
+    borderRadius: 50,
+    backgroundColor: '#f6f6f7',
+  },
+  tagItem: {
+    paddingHorizontal: 25,
+    paddingVertical: 8,
+    borderColor: theme.colors.primary,
+    borderWidth: 1,
+    borderRadius: 50,
+    backgroundColor: '#fff',
+    opacity: 0.65,
+  },
+  tagText: {
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+
   loginBar: {
     paddingHorizontal: 20,
     height: 60,
@@ -126,15 +154,19 @@ const useStyles = makeStyles(theme => ({
     position: 'absolute',
     bottom: 60,
     right: 0,
-    flexDirection: 'row',
+    zIndex: 10,
   },
   chatImg: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
     width: 260,
     height: 250,
   },
-
   bubble: {
-    position: 'relative',
+    position: 'absolute',
+    right: 170,
+    bottom: 140,
     marginTop: 15,
     padding: 15,
     width: 190,
@@ -142,7 +174,8 @@ const useStyles = makeStyles(theme => ({
     borderColor: theme.colors.primary,
     borderWidth: 1,
     borderRadius: 10,
-    opacity: 0.8,
+    opacity: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   bubbleArrow: {
     position: 'absolute',
