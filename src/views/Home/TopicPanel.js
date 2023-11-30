@@ -6,6 +6,7 @@ import {observer} from 'mobx-react';
 
 import {useUserStore} from '@store/userStore';
 import UserLoginDialog from './components/UserLoginDialog';
+import MsgToast from '@components/MsgToast';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
@@ -108,7 +109,16 @@ const TopicPanel = observer(() => {
         </View>
       </View>
 
-      <UserLoginDialog visible={visible} setVisible={setVisible} />
+      <UserLoginDialog
+        visible={visible}
+        setVisible={setVisible}
+        onSuccess={data => {
+          MsgToast.show({
+            text1: '登陆成功',
+            text2: `欢迎，${data.account}`,
+          });
+        }}
+      />
     </View>
   );
 });

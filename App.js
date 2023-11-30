@@ -1,12 +1,14 @@
 import React, {useEffect} from 'react';
-import {StyleSheet, StatusBar} from 'react-native';
+import {StyleSheet, StatusBar, View} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {ThemeProvider, createTheme} from '@rneui/themed';
+import MsgToast from '@components/MsgToast';
+import {FullWindowOverlay} from 'react-native-screens';
 
-import TopicPanel from './src/views/Home/TopicPanel';
+import TopicPanel from '@views/Home/TopicPanel';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
@@ -32,12 +34,17 @@ const App = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <SafeAreaProvider>
+      <>
         <StatusBar translucent={false} />
-        <NavigationContainer>
-          <StackScreen></StackScreen>
-        </NavigationContainer>
-      </SafeAreaProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <StackScreen></StackScreen>
+          </NavigationContainer>
+        </SafeAreaProvider>
+
+        {/* global toast */}
+        <MsgToast />
+      </>
     </ThemeProvider>
   );
 };

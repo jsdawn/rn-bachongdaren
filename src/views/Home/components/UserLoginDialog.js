@@ -4,10 +4,11 @@ import {Dialog, makeStyles, Button} from '@rneui/themed';
 import {useForm} from 'react-hook-form';
 import {observer} from 'mobx-react';
 import {useUserStore} from '@store/userStore';
+import MsgToast from '@components/MsgToast';
 
 import {InputController} from '@components/FormController';
 
-const UserLoginDialog = observer(({visible, setVisible}) => {
+const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const styles = useStyles();
   const {updateUser} = useUserStore();
 
@@ -36,60 +37,70 @@ const UserLoginDialog = observer(({visible, setVisible}) => {
       nickName: data.account,
     });
     reset();
+    setVisible(false);
+    onSuccess?.(data);
   };
   const onError = errors => {
     console.log(errors);
+    MsgToast.show({
+      type: 'error',
+      text1: '系统提示',
+      text2: JSON.stringify(errors),
+    });
   };
 
   return (
-    <Dialog
-      isVisible={visible}
-      onBackdropPress={() => setVisible(!visible)}
-      overlayStyle={styles.container}>
-      <Dialog.Title title="请先登陆账号" titleStyle={{textAlign: 'center'}} />
-      <View>
-        <InputController
-          control={control}
-          errors={errors}
-          rules={{
-            required: '请输入您的账号',
-            minLength: {value: 6, message: '最少输入6位数'},
-          }}
-          name="account"
-          label="账号"
-          placeholder="请输入账号"
-        />
+    <>
+      <Dialog
+        isVisible={visible}
+        onBackdropPress={() => setVisible(!visible)}
+        overlayStyle={styles.container}>
+        <Dialog.Title title="请先登陆账号" titleStyle={{textAlign: 'center'}} />
+        <View>
+          <InputController
+            control={control}
+            errors={errors}
+            rules={{
+              required: '请输入您的账号',
+              minLength: {value: 6, message: '最少输入6位数'},
+            }}
+            name="account"
+            label="账号"
+            placeholder="请输入账号"
+          />
 
-        <InputController
-          control={control}
-          errors={errors}
-          rules={{required: '请输入您的密码'}}
-          name="password"
-          label="密码"
-          placeholder="请输入密码"
-        />
+          <InputController
+            control={control}
+            errors={errors}
+            rules={{required: '请输入您的密码'}}
+            name="password"
+            label="密码"
+            placeholder="请输入密码"
+          />
 
-        <View style={styles.actions}>
-          <Button
-            buttonStyle={styles.btn}
-            size="lg"
-            radius={25}
-            onPress={handleSubmit(onSubmit, onError)}
-            loading={isSubmitting}>
-            登陆
-          </Button>
-          <Button
-            buttonStyle={styles.btn}
-            titleStyle={{color: '#666'}}
-            size="lg"
-            radius={25}
-            type="outline"
-            onPress={() => {}}>
-            注册
-          </Button>
+          <View style={styles.actions}>
+            <Button
+              buttonStyle={styles.btn}
+              size="lg"
+              radius={25}
+              loading={isSubmitting}
+              onPress={handleSubmit(onSubmit, onError)}>
+              登陆
+            </Button>
+            <Button
+              buttonStyle={styles.btn}
+              titleStyle={{color: '#666'}}
+              size="lg"
+              radius={25}
+              type="outline"
+              onPress={() => {}}>
+              注册
+            </Button>
+          </View>
         </View>
-      </View>
-    </Dialog>
+        {visible ? <MsgToast /> : null}
+      </Dialog>
+    </>
   );
 });
 
