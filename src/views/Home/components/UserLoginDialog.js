@@ -3,17 +3,18 @@ import React from 'react';
 import {Dialog, makeStyles, Button} from '@rneui/themed';
 import {useForm} from 'react-hook-form';
 import {observer} from 'mobx-react';
+import {useUserStore} from '@store/userStore';
 
-import {useCounterStore} from '../../../store/counter.store';
-import {InputController} from '../../../components/FormController';
+import {InputController} from '@components/FormController';
 
 const UserLoginDialog = observer(({visible, setVisible}) => {
   const styles = useStyles();
-  const {count, increment, decrement} = useCounterStore();
+  const {updateUser} = useUserStore();
 
   const {
     control,
     handleSubmit,
+    reset,
     formState: {errors, isSubmitting},
   } = useForm({
     defaultValues: {
@@ -30,7 +31,11 @@ const UserLoginDialog = observer(({visible, setVisible}) => {
   const onSubmit = async data => {
     console.log(data);
     await sleep(1000);
-    alert(JSON.stringify(data));
+    updateUser({
+      account: data.account,
+      nickName: data.account,
+    });
+    reset();
   };
   const onError = errors => {
     console.log(errors);
@@ -43,9 +48,6 @@ const UserLoginDialog = observer(({visible, setVisible}) => {
       overlayStyle={styles.container}>
       <Dialog.Title title="请先登陆账号" titleStyle={{textAlign: 'center'}} />
       <View>
-        <Text>{`Clicked ${count} times!`}</Text>
-        <Button title="Increment" onPress={increment} />
-        <Button title="Decrement" onPress={decrement} />
         <InputController
           control={control}
           errors={errors}

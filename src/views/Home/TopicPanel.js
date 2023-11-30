@@ -2,10 +2,14 @@ import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
 import React, {useState} from 'react';
 import {Button, makeStyles} from '@rneui/themed';
 import {TagCloud} from 'react-tagcloud/rn';
+import {observer} from 'mobx-react';
+
+import {useUserStore} from '@store/userStore';
 import UserLoginDialog from './components/UserLoginDialog';
 
-const TopicPanel = () => {
+const TopicPanel = observer(() => {
   const styles = useStyles();
+  const {userInfo, clearUser} = useUserStore();
 
   const [visible, setVisible] = useState(false);
   const [data, setData] = useState([
@@ -30,6 +34,10 @@ const TopicPanel = () => {
     ]);
   };
 
+  const logout = () => {
+    clearUser();
+  };
+
   const TagRenderer = (tag, size, color) => (
     <View key={tag.value} style={styles.tagItemWrap}>
       <TouchableOpacity
@@ -45,7 +53,7 @@ const TopicPanel = () => {
       <View style={styles.header}>
         <Image
           style={styles.logo}
-          source={require('../../image/logo_mini.png')}
+          source={require('../../assets/image/logo_mini.png')}
         />
         <Button
           buttonStyle={styles.hdButton}
@@ -70,18 +78,28 @@ const TopicPanel = () => {
         <Text onPress={() => Alert.alert('使用帮助')} style={{color: '#fff'}}>
           使用帮助
         </Text>
-        <Button
-          type="outline"
-          buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
-          onPress={() => setVisible(true)}>
-          账号登陆
-        </Button>
+
+        {userInfo.account ? (
+          <Text style={{color: '#fff'}} onPress={logout}>
+            欢迎，{userInfo.account}
+          </Text>
+        ) : (
+          <Button
+            type="outline"
+            buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
+            onPress={() => {
+              console.log(userInfo);
+              setVisible(true);
+            }}>
+            账号登陆
+          </Button>
+        )}
       </View>
 
       <View style={styles.chatWrap}>
         <Image
           style={styles.chatImg}
-          source={require('../../image/girl.png')}
+          source={require('../../assets/image/girl.png')}
         />
         <View style={styles.bubble}>
           <View style={styles.bubbleArrow}></View>
@@ -93,7 +111,7 @@ const TopicPanel = () => {
       <UserLoginDialog visible={visible} setVisible={setVisible} />
     </View>
   );
-};
+});
 
 export default TopicPanel;
 
