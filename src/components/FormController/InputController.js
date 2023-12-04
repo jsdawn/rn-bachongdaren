@@ -1,4 +1,5 @@
 import {Controller} from 'react-hook-form';
+
 import {Input, InputProps, makeStyles} from '@rneui/themed';
 
 /**
@@ -19,6 +20,7 @@ export const InputController = ({control, errors, rules, name, ...attrs}) => {
           value={value}
           onChangeText={onChange}
           onBlur={onBlur}
+          containerStyle={styles.wrap}
           labelStyle={styles.label}
           inputContainerStyle={styles.input}
           errorMessage={errors[name]?.message}
@@ -30,6 +32,9 @@ export const InputController = ({control, errors, rules, name, ...attrs}) => {
 };
 
 const useStyles = makeStyles(theme => ({
+  wrap: {
+    paddingHorizontal: 0,
+  },
   input: {
     borderBottomWidth: 0,
     backgroundColor: '#ecf7ff',

@@ -1,16 +1,20 @@
-import {Text, View} from 'react-native';
-import React from 'react';
-import {Dialog, makeStyles, Button} from '@rneui/themed';
-import {useForm} from 'react-hook-form';
+import React, {useState} from 'react';
 import {observer} from 'mobx-react';
-import {useUserStore} from '@store/userStore';
-import MsgToast from '@components/MsgToast';
+import {useForm} from 'react-hook-form';
+import {Text, View} from 'react-native';
 
 import {InputController} from '@components/FormController';
+import MsgToast from '@components/MsgToast';
+import {Dialog, makeStyles, Button, Icon} from '@rneui/themed';
+import UserSignInForm from './UserSignInForm';
+
+import {sleep} from '@utils/index';
+import {useUserStore} from '@store/userStore';
 
 const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const styles = useStyles();
   const {updateUser} = useUserStore();
+  const [active, setActive] = useState('login'); // login/signIn
 
   const {
     control,
@@ -26,8 +30,6 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
       keepDirtyValues: false,
     },
   });
-
-  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   const onSubmit = async data => {
     console.log(data);
@@ -50,13 +52,27 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   };
 
   return (
-    <>
-      <Dialog
-        isVisible={visible}
-        onBackdropPress={() => setVisible(!visible)}
-        overlayStyle={styles.container}>
-        <Dialog.Title title="请先登陆账号" titleStyle={{textAlign: 'center'}} />
-        <View>
+    <Dialog
+      isVisible={visible}
+      onBackdropPress={() => {}}
+      overlayStyle={styles.container}>
+      <Icon
+        containerStyle={styles.icon}
+        name="close"
+        type="antdesign"
+        color="#999"
+        onPress={() => setVisible(false)}
+      />
+
+      {active == 'signIn' ? (
+        <UserSignInForm onCancel={() => setActive('login')} />
+      ) : (
+        <>
+          <Dialog.Title
+            title="请先登陆账号"
+            titleStyle={{textAlign: 'center'}}
+          />
+
           <InputController
             control={control}
             errors={errors}
@@ -93,14 +109,17 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
               size="lg"
               radius={25}
               type="outline"
-              onPress={() => {}}>
+              onPress={() => {
+                setActive('signIn');
+              }}>
               注册
             </Button>
           </View>
-        </View>
-        {visible ? <MsgToast /> : null}
-      </Dialog>
-    </>
+        </>
+      )}
+
+      {visible ? <MsgToast /> : null}
+    </Dialog>
   );
 });
 
@@ -111,21 +130,13 @@ const useStyles = makeStyles(theme => ({
     width: 320,
     borderRadius: 15,
   },
-  input: {
-    borderBottomWidth: 0,
-    backgroundColor: '#ecf7ff',
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  label: {
-    marginBottom: 5,
-    color: theme.colors.primary,
+  icon: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    zIndex: 10,
   },
 
-  errMsg: {
-    color: theme.colors.error,
-    textAlign: 'center',
-  },
   actions: {
     marginTop: 10,
     flexDirection: 'row',

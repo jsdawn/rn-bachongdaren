@@ -1,23 +1,23 @@
-import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {Button, makeStyles} from '@rneui/themed';
-import {TagCloud} from 'react-tagcloud/rn';
 import {observer} from 'mobx-react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
+import {TagCloud} from 'react-tagcloud/rn';
+
+import UserLoginDialog from './components/UserLoginDialog';
+import MessageBox, {useMessageBox} from '@components/MessageBox';
+import MsgToast from '@components/MsgToast';
+import {Button, makeStyles} from '@rneui/themed';
 
 import {useUserStore} from '@store/userStore';
-import UserLoginDialog from './components/UserLoginDialog';
-import MsgToast from '@components/MsgToast';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
-  const {userInfo, clearUser, isHydrated} = useUserStore();
+  const {userInfo, clearUser} = useUserStore();
 
-  useEffect(() => {
-    console.log(userInfo, isHydrated);
-  }, [isHydrated]);
+  const {showMessage, hideMessage, ...messageProps} = useMessageBox();
 
   const [visible, setVisible] = useState(false);
+
   const [data, setData] = useState([
     {value: 'JavaScript', count: 38},
     {value: 'React', count: 30},
@@ -41,14 +41,20 @@ const TopicPanel = observer(() => {
   };
 
   const logout = () => {
-    clearUser();
+    showMessage({
+      title: '系统系统',
+      message: '您确认要退出登陆吗？',
+      onConfirm() {
+        hideMessage();
+        clearUser();
+      },
+    });
   };
 
-  const testfun = () => {
-    console.log('sss');
-    AsyncStorage.getItem('userStore').then(res => {
-      console.log(res);
-      console.log(userInfo);
+  const openHelper = () => {
+    showMessage({
+      title: '帮助手册',
+      message: '这里是帮助手册',
     });
   };
 
@@ -89,14 +95,26 @@ const TopicPanel = observer(() => {
       </View>
 
       <View style={styles.loginBar}>
-        <Text onPress={testfun} style={{color: '#fff'}}>
-          使用帮助
-        </Text>
+        <Button onPress={openHelper}>使用帮助</Button>
 
         {userInfo.account ? (
-          <Text style={{color: '#fff'}} onPress={logout}>
-            欢迎你，{userInfo.account}
-          </Text>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={{color: '#fff', fontSize: 16}}>
+              欢迎你！{userInfo.account}
+            </Text>
+            <Button
+              type="outline"
+              size="sm"
+              buttonStyle={{
+                backgroundColor: '#fff',
+                borderRadius: 30,
+                marginLeft: 10,
+              }}
+              titleStyle={{fontSize: 13}}
+              onPress={logout}>
+              退出登陆
+            </Button>
+          </View>
         ) : (
           <Button
             type="outline"
@@ -128,10 +146,12 @@ const TopicPanel = observer(() => {
         onSuccess={data => {
           MsgToast.show({
             text1: '登陆成功',
-            text2: `欢迎，${data.account}`,
+            text2: `接下来请根据自己心情，在屏幕上选择你想倾听的话题！`,
           });
         }}
       />
+
+      <MessageBox {...messageProps} />
     </View>
   );
 });

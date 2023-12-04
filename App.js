@@ -1,22 +1,27 @@
 import React, {useEffect} from 'react';
 import {StyleSheet, StatusBar, View} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
+
+import MsgToast from '@components/MsgToast';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {ThemeProvider, createTheme} from '@rneui/themed';
-import MsgToast from '@components/MsgToast';
-import {FullWindowOverlay} from 'react-native-screens';
-
+import DeviceLogin from '@views/Home/DeviceLogin';
 import TopicPanel from '@views/Home/TopicPanel';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
-  <Stack.Navigator>
+  <Stack.Navigator initialRouteName="TopicPanel">
     <Stack.Screen
       name="TopicPanel"
       component={TopicPanel}
       options={{title: '话题工作台', headerShown: false}}
+    />
+    <Stack.Screen
+      name="DeviceLogin"
+      component={DeviceLogin}
+      options={{title: '设备登陆', headerShown: false}}
     />
   </Stack.Navigator>
 );
