@@ -1,5 +1,7 @@
 import {createContext, useContext} from 'react';
-import {configure, makeAutoObservable} from 'mobx';
+import {configure, makeAutoObservable, action} from 'mobx';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {makePersistable, isHydrated} from 'mobx-persist-store';
 
 configure({useProxies: 'never'});
 
@@ -8,6 +10,21 @@ class UserStore {
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
+    makePersistable(this, {
+      name: 'userStore',
+      properties: ['user'],
+      storage: AsyncStorage,
+      //expireIn: 10000, // One day in milliseconds
+      //removeOnExpiration: true,
+    }).then(
+      action(res => {
+        console.log(res);
+      }),
+    );
+  }
+
+  get isHydrated() {
+    return isHydrated(this);
   }
 
   get userInfo() {

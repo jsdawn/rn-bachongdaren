@@ -1,8 +1,9 @@
 import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, makeStyles} from '@rneui/themed';
 import {TagCloud} from 'react-tagcloud/rn';
 import {observer} from 'mobx-react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {useUserStore} from '@store/userStore';
 import UserLoginDialog from './components/UserLoginDialog';
@@ -10,7 +11,11 @@ import MsgToast from '@components/MsgToast';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
-  const {userInfo, clearUser} = useUserStore();
+  const {userInfo, clearUser, isHydrated} = useUserStore();
+
+  useEffect(() => {
+    console.log(userInfo, isHydrated);
+  }, [isHydrated]);
 
   const [visible, setVisible] = useState(false);
   const [data, setData] = useState([
@@ -37,6 +42,14 @@ const TopicPanel = observer(() => {
 
   const logout = () => {
     clearUser();
+  };
+
+  const testfun = () => {
+    console.log('sss');
+    AsyncStorage.getItem('userStore').then(res => {
+      console.log(res);
+      console.log(userInfo);
+    });
   };
 
   const TagRenderer = (tag, size, color) => (
@@ -76,13 +89,13 @@ const TopicPanel = observer(() => {
       </View>
 
       <View style={styles.loginBar}>
-        <Text onPress={() => Alert.alert('使用帮助')} style={{color: '#fff'}}>
+        <Text onPress={testfun} style={{color: '#fff'}}>
           使用帮助
         </Text>
 
         {userInfo.account ? (
           <Text style={{color: '#fff'}} onPress={logout}>
-            欢迎，{userInfo.account}
+            欢迎你，{userInfo.account}
           </Text>
         ) : (
           <Button
