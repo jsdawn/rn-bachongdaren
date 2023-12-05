@@ -42,14 +42,6 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
     setVisible(false);
     onSuccess?.(data);
   };
-  const onError = errors => {
-    console.log(errors);
-    MsgToast.show({
-      type: 'error',
-      text1: '系统提示',
-      text2: JSON.stringify(errors),
-    });
-  };
 
   return (
     <Dialog
@@ -100,7 +92,7 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
               size="lg"
               radius={25}
               loading={isSubmitting}
-              onPress={handleSubmit(onSubmit, onError)}>
+              onPress={handleSubmit(onSubmit)}>
               登陆
             </Button>
             <Button

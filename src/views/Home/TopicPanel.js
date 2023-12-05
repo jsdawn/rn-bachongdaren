@@ -4,17 +4,16 @@ import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
 import UserLoginDialog from './components/UserLoginDialog';
-import MessageBox, {useMessageBox} from '@components/MessageBox';
+import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {Button, makeStyles} from '@rneui/themed';
 
+import {sleep} from '@utils/index';
 import {useUserStore} from '@store/userStore';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
   const {userInfo, clearUser} = useUserStore();
-
-  const {showMessage, hideMessage, ...messageProps} = useMessageBox();
 
   const [visible, setVisible] = useState(false);
 
@@ -41,28 +40,37 @@ const TopicPanel = observer(() => {
   };
 
   const logout = () => {
-    showMessage({
-      title: '系统系统',
-      message: '您确认要退出登陆吗？',
-      onConfirm() {
-        hideMessage();
+    MessageBox.show({
+      title: '系统提示',
+      message: '确定退出登陆吗？',
+      onConfirm(done) {
         clearUser();
+        done();
       },
     });
   };
 
   const openHelper = () => {
-    showMessage({
-      title: '帮助手册',
-      message: '这里是帮助手册',
+    MessageBox.show({
+      title: '使用帮助',
+      message: '这里是帮助指南',
     });
   };
 
-  const TagRenderer = (tag, size, color) => (
+  const clickItem = item => {
+    if (!userInfo.account) {
+      MessageBox.show({
+        title: '操作提示',
+        message: '请先点击右下角按钮登陆账号',
+        showCancelButton: false,
+        confirmButtonText: '好的',
+      });
+    }
+  };
+
+  const ItemRenderer = (tag, size, color) => (
     <View key={tag.value} style={styles.tagItemWrap}>
-      <TouchableOpacity
-        style={styles.tagItem}
-        onPress={() => console.log(tag.value)}>
+      <TouchableOpacity style={styles.tagItem} onPress={() => clickItem(tag)}>
         <Text style={{...styles.tagText, fontSize: size}}>{tag.value}</Text>
       </TouchableOpacity>
     </View>
@@ -90,7 +98,7 @@ const TopicPanel = observer(() => {
           minSize={12}
           maxSize={35}
           tags={data}
-          renderer={TagRenderer}
+          renderer={ItemRenderer}
         />
       </View>
 
@@ -150,8 +158,6 @@ const TopicPanel = observer(() => {
           });
         }}
       />
-
-      <MessageBox {...messageProps} />
     </View>
   );
 });

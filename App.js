@@ -3,6 +3,7 @@ import {StyleSheet, StatusBar, View} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
 
+import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -49,6 +50,8 @@ const App = () => {
 
         {/* global toast */}
         <MsgToast />
+        {/* global MessageBox */}
+        <MessageBox />
       </>
     </ThemeProvider>
   );

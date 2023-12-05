@@ -1,72 +1,75 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import {observer} from 'mobx-react';
 import {Text} from 'react-native';
 
 import {Dialog, makeStyles} from '@rneui/themed';
 
-/**
- * - import MessageBox, {useMessageBox} from '@components/MessageBox';
- * - const {showMessage, ...msgProps} = useMessageBox();
- * - <MessageBox {...msgProps} />
- * @param {*} config
- * @returns
- */
-export const useMessageBox = config => {
-  const [visible, setVisible] = useState(false);
-  const [options, setOptions] = useState(config);
+import {isThenable} from '@utils/index';
+import {useMessageStore, messageStore} from '@store/messageStore';
 
-  const showMessage = opts => {
-    setOptions(opts);
-    setVisible(true);
-  };
-
-  const hideMessage = () => {
-    setVisible(false);
-  };
-
-  return {
-    visible,
-    setVisible,
-    showMessage,
-    hideMessage,
-    ...options,
-  };
-};
-
-const MessageBox = ({
-  visible,
-  setVisible,
-  title,
-  message,
-  onConfirm,
-  confirmButtonText = '确定',
-  onCancel,
-  cancelButtonText = '取消',
-}) => {
+const MessageBox = observer(() => {
   const styles = useStyles();
+  const {visible, options, hide} = useMessageStore();
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setConfirmLoading(false);
+      setCancelLoading(false);
+    }
+  }, [visible]);
 
   return (
     <Dialog
       isVisible={visible}
       onBackdropPress={() => {}}
       overlayStyle={styles.container}>
-      <Dialog.Title title={title || '系统提示'} />
+      <Dialog.Title title={options.title} />
 
-      <Text>{message}</Text>
+      <Text>{options.message}</Text>
 
       <Dialog.Actions>
-        <Dialog.Button title={confirmButtonText} onPress={onConfirm} />
         <Dialog.Button
-          titleStyle={{color: '#888'}}
-          title={cancelButtonText}
+          title={options.confirmButtonText}
+          loading={confirmLoading}
           onPress={() => {
-            onCancel?.();
-            setVisible(false);
+            if (options.onConfirm) {
+              setConfirmLoading(true);
+              options.onConfirm(isHide => {
+                (isHide == undefined || isHide) && hide();
+                setConfirmLoading(false);
+              });
+            } else {
+              hide();
+            }
           }}
         />
+        {options.showCancelButton ? (
+          <Dialog.Button
+            titleStyle={{color: '#888'}}
+            title={options.cancelButtonText}
+            loading={cancelLoading}
+            onPress={() => {
+              if (options.onCancel) {
+                setCancelLoading(true);
+                options.onCancel(isHide => {
+                  (isHide == undefined || isHide) && hide();
+                  setCancelLoading(false);
+                });
+              } else {
+                hide();
+              }
+            }}
+          />
+        ) : null}
       </Dialog.Actions>
     </Dialog>
   );
-};
+});
+
+MessageBox.show = opts => messageStore.show(opts);
+MessageBox.hide = () => messageStore.hide();
 
 export default MessageBox;
 
