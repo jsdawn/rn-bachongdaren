@@ -1,3 +1,4 @@
+import React, {useState, useEffect} from 'react';
 import {
   Button,
   StyleSheet,
@@ -7,7 +8,6 @@ import {
   PermissionsAndroid,
   NativeEventEmitter,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
 
 const {AutoAnswerModule} = NativeModules;
 
@@ -71,7 +71,7 @@ const PhoneState = () => {
       // listener.remove();
       eventEmitter.removeAllListeners('callStateChanged');
     };
-  });
+  }, []);
 
   return (
     <View style={styles.container}>

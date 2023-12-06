@@ -3,22 +3,24 @@ import {configure, makeAutoObservable} from 'mobx';
 
 configure({useProxies: 'never'});
 
+const initOpts = {
+  title: '系统提示',
+  confirmButtonText: '确定',
+  showConfirmButton: true,
+  cancelButtonText: '取消',
+  showCancelButton: true,
+};
+
 class MessageStore {
   visible = false;
-  options = {
-    title: '系统提示',
-    confirmButtonText: '确定',
-    showConfirmButton: true,
-    cancelButtonText: '取消',
-    showCancelButton: true,
-  };
+  options = {...initOpts};
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
   }
 
   show(value) {
-    this.options = {...this.options, ...value};
+    this.options = {...initOpts, ...value};
     this.visible = true;
   }
 

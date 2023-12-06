@@ -1,7 +1,8 @@
 import {createContext, useContext} from 'react';
 import {configure, makeAutoObservable, action} from 'mobx';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {makePersistable, isHydrated} from 'mobx-persist-store';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 configure({useProxies: 'never'});
 
@@ -29,6 +30,10 @@ class UserStore {
 
   get userInfo() {
     return this.user;
+  }
+
+  get isUsered() {
+    return !!(this.user && this.user.account);
   }
 
   updateUser(value) {

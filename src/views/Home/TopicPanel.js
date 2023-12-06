@@ -3,6 +3,7 @@ import {observer} from 'mobx-react';
 import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
+import TopicLinkDialog from './components/TopicLinkDialog';
 import UserLoginDialog from './components/UserLoginDialog';
 import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
@@ -13,9 +14,10 @@ import {useUserStore} from '@store/userStore';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
-  const {userInfo, clearUser} = useUserStore();
+  const {userInfo, clearUser, isUsered} = useUserStore();
 
   const [visible, setVisible] = useState(false);
+  const [linkVisible, setLinkVisible] = useState(false);
 
   const [data, setData] = useState([
     {value: 'JavaScript', count: 38},
@@ -58,14 +60,17 @@ const TopicPanel = observer(() => {
   };
 
   const clickItem = item => {
-    if (!userInfo.account) {
+    if (!isUsered) {
       MessageBox.show({
         title: '操作提示',
         message: '请先点击右下角按钮登陆账号',
         showCancelButton: false,
         confirmButtonText: '好的',
       });
+      return;
     }
+
+    setLinkVisible(true);
   };
 
   const ItemRenderer = (tag, size, color) => (
@@ -105,7 +110,7 @@ const TopicPanel = observer(() => {
       <View style={styles.loginBar}>
         <Button onPress={openHelper}>使用帮助</Button>
 
-        {userInfo.account ? (
+        {isUsered ? (
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Text style={{color: '#fff', fontSize: 16}}>
               欢迎你！{userInfo.account}
@@ -148,6 +153,7 @@ const TopicPanel = observer(() => {
         </View>
       </View>
 
+      {/* ==弹窗== */}
       <UserLoginDialog
         visible={visible}
         setVisible={setVisible}
@@ -158,6 +164,8 @@ const TopicPanel = observer(() => {
           });
         }}
       />
+
+      <TopicLinkDialog visible={linkVisible} setVisible={setLinkVisible} />
     </View>
   );
 });
