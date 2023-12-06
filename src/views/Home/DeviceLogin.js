@@ -1,6 +1,6 @@
 import React from 'react';
 import {useForm} from 'react-hook-form';
-import {StyleSheet, Text, Image, View, ImageBackground} from 'react-native';
+import {Text, Image, View, ImageBackground} from 'react-native';
 
 import {InputController} from '@components/FormController';
 import {Button, makeStyles} from '@rneui/themed';
@@ -35,7 +35,8 @@ const DeviceLogin = () => {
     <View style={styles.container}>
       <ImageBackground
         style={styles.bgImage}
-        source={require('../../assets/image/device_bg.png')}>
+        source={require('../../assets/image/device_bg.png')}
+        resizeMode="stretch">
         {/* <Image
           style={styles.logo}
           source={require('../../assets/image/logo_lg.png')}
@@ -88,7 +89,6 @@ const useStyles = makeStyles(theme => ({
   },
   bgImage: {
     flex: 1,
-    resizeMode: 'stretch',
     alignItems: 'center',
   },
   logo: {

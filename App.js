@@ -10,6 +10,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {ThemeProvider, createTheme} from '@rneui/themed';
 import DeviceLogin from '@views/Home/DeviceLogin';
 import TopicPanel from '@views/Home/TopicPanel';
+import ListenCenter from '@views/Listener/ListenCenter';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
@@ -23,6 +24,11 @@ const StackScreen = () => (
       name="DeviceLogin"
       component={DeviceLogin}
       options={{title: '设备登陆', headerShown: false}}
+    />
+    <Stack.Screen
+      name="ListenCenter"
+      component={ListenCenter}
+      options={{title: '倾听中', headerShown: false}}
     />
   </Stack.Navigator>
 );

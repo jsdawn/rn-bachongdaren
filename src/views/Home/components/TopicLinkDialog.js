@@ -1,9 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Text, View} from 'react-native';
 
+import {useNavigation} from '@react-navigation/native';
 import {Dialog, makeStyles, Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
+import {useUserStore} from '@store/userStore';
 
 const StatusCode = {
   QUEUE: 0,
@@ -14,23 +16,52 @@ const StatusCode = {
 
 const TopicLinkDialog = ({visible, setVisible}) => {
   const styles = useStyles();
+  const navigation = useNavigation();
+  const {clearUser} = useUserStore();
+
   const [status, setStatus] = useState(StatusCode.QUEUE);
+  const statusRef = useRef(status);
+  statusRef.current = status; // 跟踪status的当前值
+
   const [queueInfo, setQueueInfo] = useState({});
+  const [history, setHistory] = useState([]);
+
+  const closeDialog = isLogout => {
+    setStatus(StatusCode.QUEUE);
+    setQueueInfo({});
+    if (isLogout) {
+      clearUser();
+    }
+    setVisible(false);
+  };
 
   const fetchQueueStatus = () => {
-    sleep(1000).then(() => {
+    sleep(2000).then(() => {
+      if (statusRef.current != StatusCode.QUEUE) {
+        // 判断状态是否已经改变
+        return;
+      }
       setQueueInfo({
         count: 88,
       });
-
+      // 有倾听历史
       setStatus(StatusCode.HISTORY);
+      setHistory([
+        {id: 1, name: '麦当劳叔叔', phone: '13533403735'},
+        {id: 2, name: '肯德基阿姨', phone: '13533403735'},
+        {id: 3, name: '必胜客小哥', phone: '13533403735'},
+      ]);
     });
   };
 
-  const fetchLinkAndCall = () => {
+  const fetchLinkAndCall = item => {
     setStatus(StatusCode.LINKING);
     sleep(2000).then(() => {
       // 获取倾听者信息，跳转拨打页
+      closeDialog();
+      navigation.navigate('ListenCenter', {
+        ...item,
+      });
     });
   };
 
@@ -49,6 +80,7 @@ const TopicLinkDialog = ({visible, setVisible}) => {
 
   // ===Status Components===
 
+  // 排队中
   const StatusQueue = () => (
     <>
       <Dialog.Title title="倾诉排队中..." titleStyle={{textAlign: 'center'}} />
@@ -67,19 +99,19 @@ const TopicLinkDialog = ({visible, setVisible}) => {
     </>
   );
 
+  // 倾听者历史
   const StatusHistory = () => (
     <>
       <Dialog.Title title="这是最近为您倾听的老师，可点击连线他们：" />
       <View style={{alignItems: 'center'}}>
-        <Text style={styles.linkItem} onPress={() => fetchLinkAndCall()}>
-          麦当劳叔叔
-        </Text>
-        <Text style={styles.linkItem} onPress={() => fetchLinkAndCall()}>
-          肯德基阿姨
-        </Text>
-        <Text style={styles.linkItem} onPress={() => fetchLinkAndCall()}>
-          必胜客小哥
-        </Text>
+        {history.map(item => (
+          <Text
+            key={item.id}
+            style={styles.historyItem}
+            onPress={() => fetchLinkAndCall(item)}>
+            {item.name}
+          </Text>
+        ))}
       </View>
       <View style={styles.actions}>
         <Button
@@ -93,6 +125,7 @@ const TopicLinkDialog = ({visible, setVisible}) => {
     </>
   );
 
+  // 连线中
   const StatusLinking = () => (
     <>
       <Dialog.Title
@@ -111,19 +144,28 @@ const TopicLinkDialog = ({visible, setVisible}) => {
     </>
   );
 
+  // 取消连线
   const StatusCancel = () => {
-    let timer = null;
+    const timer = useRef(null);
     const [time, setTime] = useState(10);
 
     useEffect(() => {
       runTime();
       return () => {
-        if (timer) clearInterval(timer);
+        if (timer.current) clearInterval(timer.current);
       };
     }, []);
 
+    useEffect(() => {
+      // 退出登陆
+      if (time == 0) {
+        if (timer.current) clearInterval(timer.current);
+        closeDialog(true);
+      }
+    }, [time]);
+
     const runTime = () => {
-      timer = setInterval(() => {
+      timer.current = setInterval(() => {
         setTime(pre => pre - 1);
       }, 1000);
     };
@@ -137,7 +179,7 @@ const TopicLinkDialog = ({visible, setVisible}) => {
             buttonStyle={styles.btn}
             size="sm"
             radius={8}
-            onPress={clickToCancel}>
+            onPress={() => closeDialog()}>
             先不退出
           </Button>
         </View>
@@ -177,7 +219,7 @@ const useStyles = makeStyles(theme => ({
     borderColor: '#999',
   },
 
-  linkItem: {
+  historyItem: {
     paddingVertical: 5,
     fontSize: 15,
   },
