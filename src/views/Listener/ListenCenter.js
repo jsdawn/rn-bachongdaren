@@ -1,11 +1,14 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {Text, View, ImageBackground} from 'react-native';
+import {Text, View, ImageBackground, NativeModules} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
+import {requestPermissions} from '@utils/permissions';
 import {useUserStore} from '@store/userStore';
+
+const {AutoAnswerModule} = NativeModules;
 
 const StatusCode = {
   DIALING: 0,
@@ -41,6 +44,7 @@ const ListenCenter = ({route}) => {
   };
 
   const beHangUp = () => {
+    AutoAnswerModule.endPhoneCalling();
     setStatus(StatusCode.HANGUP);
     if (durTimer.current) clearInterval(durTimer.current);
     setOutNum(10);
@@ -59,7 +63,11 @@ const ListenCenter = ({route}) => {
   };
 
   useEffect(() => {
-    sleep(1000).then(() => {
+    // sleep(1000).then(() => {
+    //   beCalling();
+    // });
+    requestPermissions().then(res => {
+      AutoAnswerModule.callPhone('13533403735');
       beCalling();
     });
 

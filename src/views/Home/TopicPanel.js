@@ -141,7 +141,7 @@ const TopicPanel = observer(() => {
         )}
       </View>
 
-      <View style={styles.chatWrap}>
+      {/* <View style={styles.chatWrap}>
         <Image
           style={styles.chatImg}
           source={require('../../assets/image/girl.png')}
@@ -151,7 +151,7 @@ const TopicPanel = observer(() => {
           <View style={styles.bubbleArrow2}></View>
           <Text style={styles.bubbleMsg}>同学可以先登陆账号哦～</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* ==弹窗== */}
       <UserLoginDialog
