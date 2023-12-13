@@ -1,6 +1,4 @@
-import {NativeModules, PermissionsAndroid} from 'react-native';
-
-const {AutoAnswerModule} = NativeModules;
+import {PermissionsAndroid} from 'react-native';
 
 // 获取权限
 export const requestPermissions = () => {

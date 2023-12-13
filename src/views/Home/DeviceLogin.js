@@ -1,24 +1,29 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import {observer} from 'mobx-react';
 import {useForm} from 'react-hook-form';
 import {Text, Image, View, ImageBackground} from 'react-native';
 
 import {InputController} from '@components/FormController';
+import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
 
-import {sleep} from '@utils/index';
+import {authDevice, register} from '@api/index';
+import {useAppStore} from '@store/appStore';
 
 const DeviceLogin = () => {
   const styles = useStyles();
+  const navigation = useNavigation();
+  const {androidId, machineToken, setMachineToken} = useAppStore();
 
   const {
     control,
     handleSubmit,
-    reset,
+    setValue,
     formState: {errors, isSubmitting},
   } = useForm({
     defaultValues: {
-      account: '',
-      password: '',
+      uuid: '',
+      code: '',
     },
     resetOptions: {
       keepDirtyValues: false,
@@ -26,10 +31,23 @@ const DeviceLogin = () => {
   });
 
   const onSubmit = async data => {
-    console.log(data);
-    await sleep(1000);
-    reset();
+    const res = await register(data).catch(() => {});
+    if (!res || !res.data) return;
+    setMachineToken(res.data?.machine_token);
+
+    const res2 = await authDevice({
+      uuid: data.uuid,
+      timestamp: new Date().getTime(),
+    }).catch(() => {});
+    if (!res2 || !res2.data) return;
+    if (res2.data.machine?.status == 1) {
+      navigation.navigate('TopicPanel');
+    }
   };
+
+  useEffect(() => {
+    setValue('uuid', androidId);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -46,22 +64,20 @@ const DeviceLogin = () => {
           <InputController
             control={control}
             errors={errors}
-            rules={{
-              required: '请输入您的账号',
-              minLength: {value: 6, message: '最少输入6位数'},
-            }}
-            name="account"
-            label="账号"
-            placeholder="请输入账号"
+            rules={{required: '正在获取设备ID'}}
+            name="uuid"
+            label="设备ID"
+            placeholder="获取设备ID"
+            disabled
           />
 
           <InputController
             control={control}
             errors={errors}
-            rules={{required: '请输入您的密码'}}
-            name="password"
-            label="密码"
-            placeholder="请输入密码"
+            rules={{required: '请输入注册码'}}
+            name="code"
+            label="注册码"
+            placeholder="请输入注册码"
           />
 
           <View style={styles.actions}>
@@ -80,7 +96,7 @@ const DeviceLogin = () => {
   );
 };
 
-export default DeviceLogin;
+export default observer(DeviceLogin);
 
 const useStyles = makeStyles(theme => ({
   container: {

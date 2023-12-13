@@ -9,12 +9,18 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {ThemeProvider, createTheme} from '@rneui/themed';
 import DeviceLogin from '@views/Home/DeviceLogin';
+import LaunchScreen from '@views/Home/LaunchScreen';
 import TopicPanel from '@views/Home/TopicPanel';
 import ListenCenter from '@views/Listener/ListenCenter';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
-  <Stack.Navigator initialRouteName="TopicPanel">
+  <Stack.Navigator initialRouteName="LaunchScreen">
+    <Stack.Screen
+      name="LaunchScreen"
+      component={LaunchScreen}
+      options={{title: '启动页', headerShown: false}}
+    />
     <Stack.Screen
       name="TopicPanel"
       component={TopicPanel}
