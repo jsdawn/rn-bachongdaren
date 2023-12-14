@@ -9,10 +9,13 @@ import {Dialog, makeStyles, Button, Icon} from '@rneui/themed';
 import UserSignInForm from './UserSignInForm';
 
 import {sleep} from '@utils/index';
+import {userLogin} from '@api/index';
+import {useAppStore} from '@store/appStore';
 import {useUserStore} from '@store/userStore';
 
 const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const styles = useStyles();
+  const {setUserToken} = useAppStore();
   const {updateUser} = useUserStore();
   const [active, setActive] = useState('login'); // login/signIn
 
@@ -23,8 +26,8 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
     formState: {errors, isSubmitting},
   } = useForm({
     defaultValues: {
-      account: '',
-      password: '',
+      username: 'qt001',
+      password: '123456',
     },
     resetOptions: {
       keepDirtyValues: false,
@@ -32,11 +35,12 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   });
 
   const onSubmit = async data => {
-    console.log(data);
-    await sleep(1000);
+    const res = await userLogin(data).catch(() => {});
+    if (!res) return;
+    setUserToken(res.token);
     updateUser({
-      account: data.account,
-      nickName: data.account,
+      ...data,
+      nickName: data.username,
     });
     reset();
     setVisible(false);
@@ -70,9 +74,8 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
             errors={errors}
             rules={{
               required: '请输入您的账号',
-              minLength: {value: 6, message: '最少输入6位数'},
             }}
-            name="account"
+            name="username"
             label="账号"
             placeholder="请输入账号"
           />
@@ -102,10 +105,22 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
               radius={25}
               type="outline"
               onPress={() => {
+                reset();
+                setVisible(false);
+              }}>
+              取消
+            </Button>
+            {/* <Button
+              buttonStyle={styles.btn}
+              titleStyle={{color: '#666'}}
+              size="lg"
+              radius={25}
+              type="outline"
+              onPress={() => {
                 setActive('signIn');
               }}>
               注册
-            </Button>
+            </Button> */}
           </View>
         </>
       )}

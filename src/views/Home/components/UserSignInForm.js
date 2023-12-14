@@ -15,7 +15,7 @@ const UserSignInForm = ({onSuccess, onCancel}) => {
     formState: {errors, isSubmitting},
   } = useForm({
     defaultValues: {
-      account: '',
+      username: '',
       password: '',
     },
     resetOptions: {
@@ -24,7 +24,6 @@ const UserSignInForm = ({onSuccess, onCancel}) => {
   });
 
   const onSubmit = async data => {
-    console.log(data);
     await sleep(1000);
     reset();
     onSuccess?.(data);
@@ -41,7 +40,7 @@ const UserSignInForm = ({onSuccess, onCancel}) => {
           required: '请输入您的账号',
           minLength: {value: 6, message: '最少输入6位数'},
         }}
-        name="account"
+        name="username"
         label="账号"
         placeholder="请输入账号"
       />

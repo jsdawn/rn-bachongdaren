@@ -1,10 +1,13 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {observer} from 'mobx-react';
 import {Text, View} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import {Dialog, makeStyles, Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
+import {createListen, getListenStatus, updateDialogStatus} from '@api/index';
+import {useListenStore} from '@store/listenStore';
 import {useUserStore} from '@store/userStore';
 
 const StatusCode = {
@@ -14,16 +17,23 @@ const StatusCode = {
   CANCEL: -1,
 };
 
-const TopicLinkDialog = ({visible, setVisible}) => {
+const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
   const styles = useStyles();
   const navigation = useNavigation();
+
   const {clearUser} = useUserStore();
+  const {setQueue, setTopic, setListener} = useListenStore();
 
   const [status, setStatus] = useState(StatusCode.QUEUE);
   const statusRef = useRef(status);
   statusRef.current = status; // 跟踪status的当前值
 
-  const [queueInfo, setQueueInfo] = useState({});
+  const timer = useRef(null);
+  const [queueInfo, setQueueInfo] = useState({
+    waitKey: '',
+    ranking: undefined,
+    waitTime: 0,
+  });
   const [history, setHistory] = useState([]);
 
   const closeDialog = isLogout => {
@@ -35,47 +45,100 @@ const TopicLinkDialog = ({visible, setVisible}) => {
     setVisible(false);
   };
 
-  const fetchQueueStatus = () => {
-    sleep(2000).then(() => {
+  const fetchHistory = () => {
+    sleep(1000)
+      .then(res => {
+        // setStatus(StatusCode.HISTORY);
+        // setHistory([
+        //   {id: 1, name: '麦当劳叔叔', phone: '13533403735'},
+        //   {id: 2, name: '肯德基阿姨', phone: '13533403735'},
+        //   {id: 3, name: '必胜客小哥', phone: '13533403735'},
+        // ]);
+        // 无历史倾听师
+        fetchQueueInfo();
+      })
+      .catch(() => {
+        fetchQueueInfo();
+      });
+  };
+
+  const fetchQueueInfo = () => {
+    if (!linkTopic?.name) return;
+    createListen({
+      topic: linkTopic.name,
+    }).then(res => {
       if (statusRef.current != StatusCode.QUEUE) {
         // 判断状态是否已经改变
         return;
       }
-      setQueueInfo({
-        count: 88,
-      });
-      // 有倾听历史
-      setStatus(StatusCode.HISTORY);
-      setHistory([
-        {id: 1, name: '麦当劳叔叔', phone: '13533403735'},
-        {id: 2, name: '肯德基阿姨', phone: '13533403735'},
-        {id: 3, name: '必胜客小哥', phone: '13533403735'},
-      ]);
+      if (!res.data) return;
+
+      setQueueInfo(res.data || {});
+      timer.current = setTimeout(() => {
+        fetchQueueStatus(res.data.waitKey);
+      }, res.data.waitTime * 1000);
     });
   };
 
-  const fetchLinkAndCall = item => {
-    setStatus(StatusCode.LINKING);
-    sleep(2000).then(() => {
-      // 获取倾听者信息，跳转拨打页
-      closeDialog();
-      navigation.navigate('ListenCenter', {
-        ...item,
-      });
+  const fetchQueueStatus = _waitKey => {
+    if (!_waitKey) return;
+    getListenStatus({
+      waitKey: _waitKey,
+    }).then(res => {
+      if (statusRef.current != StatusCode.QUEUE) {
+        // 判断状态是否已经改变
+        return;
+      }
+      if (!res.data) return;
+
+      if (res.data.calledNo) {
+        // 排队结束，倾听师信息 res.data
+        fetchLinkAndCall(res.data);
+        return;
+      }
+
+      setQueueInfo(res.data || {});
+      timer.current = setTimeout(() => {
+        fetchQueueStatus(res.data.waitKey);
+      }, res.data.waitTime * 1000);
     });
+  };
+
+  const fetchLinkAndCall = _listener => {
+    setStatus(StatusCode.LINKING);
+    // 缓存倾听信息
+    setQueue(queueInfo);
+    setTopic(linkTopic);
+    setListener(_listener);
+    // 获取倾听者信息，跳转拨打页
+    closeDialog();
+    navigation.navigate('ListenCenter');
   };
 
   const clickToCancel = () => {
+    // 由组件处理取消逻辑
     setStatus(StatusCode.CANCEL);
+
+    updateDialogStatus({
+      id: queueInfo.dialogId,
+      status: 10,
+    }).catch(() => {});
   };
 
   useEffect(() => {
     if (!visible) {
-      setStatus(StatusCode.QUEUE);
-      setQueueInfo({});
+      if (timer.current) clearTimeout(timer.current);
       return;
     }
-    fetchQueueStatus();
+
+    setQueueInfo({});
+    setHistory([]);
+    setStatus(StatusCode.QUEUE);
+    fetchHistory();
+
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
   }, [visible]);
 
   // ===Status Components===
@@ -85,7 +148,8 @@ const TopicLinkDialog = ({visible, setVisible}) => {
     <>
       <Dialog.Title title="倾诉排队中..." titleStyle={{textAlign: 'center'}} />
       <Text style={{textAlign: 'center'}}>
-        排在您前面的还有{queueInfo.count || '--'}人
+        排在您前面的还有
+        {queueInfo.ranking == undefined ? '--' : queueInfo.ranking}人
       </Text>
       <View style={styles.actions}>
         <Button
@@ -146,26 +210,27 @@ const TopicLinkDialog = ({visible, setVisible}) => {
 
   // 取消连线
   const StatusCancel = () => {
-    const timer = useRef(null);
+    const timerOut = useRef(null);
     const [time, setTime] = useState(10);
 
     useEffect(() => {
+      console.log('取消连接组件');
       runTime();
       return () => {
-        if (timer.current) clearInterval(timer.current);
+        if (timerOut.current) clearInterval(timerOut.current);
       };
     }, []);
 
     useEffect(() => {
       // 退出登陆
       if (time == 0) {
-        if (timer.current) clearInterval(timer.current);
+        if (timerOut.current) clearInterval(timerOut.current);
         closeDialog(true);
       }
     }, [time]);
 
     const runTime = () => {
-      timer.current = setInterval(() => {
+      timerOut.current = setInterval(() => {
         setTime(pre => pre - 1);
       }, 1000);
     };
@@ -200,7 +265,7 @@ const TopicLinkDialog = ({visible, setVisible}) => {
   );
 };
 
-export default TopicLinkDialog;
+export default observer(TopicLinkDialog);
 
 const useStyles = makeStyles(theme => ({
   container: {

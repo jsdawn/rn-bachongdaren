@@ -11,6 +11,7 @@ class UserStore {
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
+    // debug：线上不缓存
     makePersistable(this, {
       name: 'userStore',
       properties: ['user'],
@@ -19,7 +20,7 @@ class UserStore {
       //removeOnExpiration: true,
     }).then(
       action(res => {
-        console.log(res);
+        // console.log(res);
       }),
     );
   }
@@ -33,7 +34,7 @@ class UserStore {
   }
 
   get isUsered() {
-    return !!(this.user && this.user.account);
+    return !!(this.user && this.user.username);
   }
 
   updateUser(value) {

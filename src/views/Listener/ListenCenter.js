@@ -1,4 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
+import {observer} from 'mobx-react';
 import {Text, View, ImageBackground, NativeModules} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
@@ -6,6 +7,7 @@ import {Button, makeStyles} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
 import {requestPermissions} from '@utils/permissions';
+import {useListenStore} from '@store/listenStore';
 import {useUserStore} from '@store/userStore';
 
 const {AutoAnswerModule} = NativeModules;
@@ -18,6 +20,8 @@ const StatusCode = {
 
 const ListenCenter = ({route}) => {
   const styles = useStyles();
+
+  const {listenInfo} = useListenStore();
   const {name, phone} = route.params || {};
   const navigation = useNavigation();
   const {clearUser} = useUserStore();
@@ -27,8 +31,9 @@ const ListenCenter = ({route}) => {
   statusRef.current = status; // 跟踪status的当前值
 
   const timer = useRef(null); // 退出timer
+  const timerLog = useRef(null); // 退出timer
   const [outNum, setOutNum] = useState(10);
-  const durTimer = useRef(null); // 时长timer
+  const timerDur = useRef(null); // 时长timer
   const [duration, setDuration] = useState(0);
 
   const beDialing = () => {
@@ -38,15 +43,19 @@ const ListenCenter = ({route}) => {
   const beCalling = () => {
     setStatus(StatusCode.CALLING);
     setDuration(0);
-    durTimer.current = setInterval(() => {
+    timerDur.current = setInterval(() => {
       setDuration(pre => pre + 1);
     }, 1000);
+    // 定时获取通话记录时长 (获取不到当前正在拨打的记录)
+    timerLog.current = setInterval(() => {
+      AutoAnswerModule.getLastCall();
+    }, 3000);
   };
 
   const beHangUp = () => {
     AutoAnswerModule.endPhoneCalling();
     setStatus(StatusCode.HANGUP);
-    if (durTimer.current) clearInterval(durTimer.current);
+    if (timerDur.current) clearInterval(timerDur.current);
     setOutNum(10);
     timer.current = setInterval(() => {
       setOutNum(pre => pre - 1);
@@ -67,13 +76,14 @@ const ListenCenter = ({route}) => {
     //   beCalling();
     // });
     requestPermissions().then(res => {
-      AutoAnswerModule.callPhone('13533403735');
+      AutoAnswerModule.callPhone(listenInfo.listener.calledNo);
       beCalling();
     });
 
     return () => {
-      if (durTimer.current) clearInterval(durTimer.current);
+      if (timerDur.current) clearInterval(timerDur.current);
       if (timer.current) clearInterval(timer.current);
+      if (timerLog.current) clearInterval(timerLog.current);
     };
   }, []);
 
@@ -103,10 +113,10 @@ const ListenCenter = ({route}) => {
         <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
           <View style={{width: '40%'}}>
             <Text style={{paddingBottom: 10, color: '#fff'}}>
-              已为你连线 麦当劳叔叔
+              已为你连线 {listenInfo.listener.teacherName}
             </Text>
             <Text style={{paddingBottom: 10, color: '#fff'}}>
-              你的烦恼是 【心情不好】
+              你的烦恼是 【{listenInfo.topic.name}】
             </Text>
             {status == StatusCode.HANGUP && (
               <Text style={{paddingBottom: 10, color: '#fff'}}>通话已结束</Text>
@@ -173,7 +183,7 @@ const ListenCenter = ({route}) => {
   );
 };
 
-export default ListenCenter;
+export default observer(ListenCenter);
 
 const useStyles = makeStyles(theme => ({
   container: {

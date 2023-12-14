@@ -10,14 +10,21 @@ import MsgToast from '@components/MsgToast';
 import {Button, makeStyles} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
+import {listTopic, userLogout} from '@api/index';
+import {useAppStore} from '@store/appStore';
 import {useUserStore} from '@store/userStore';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
+  const {setUserToken} = useAppStore();
   const {userInfo, clearUser, isUsered} = useUserStore();
 
   const [visible, setVisible] = useState(false);
   const [linkVisible, setLinkVisible] = useState(false);
+  const [pageNum, setPageNum] = useState(1);
+  const [pageSize] = useState(10);
+  const [dataList, setDataList] = useState([]);
+  const [topic, setTopic] = useState({}); // 当前话题
 
   const [data, setData] = useState([
     {value: 'JavaScript', count: 38},
@@ -30,15 +37,7 @@ const TopicPanel = observer(() => {
   ]);
 
   const changeTopics = () => {
-    setData([
-      {value: 'JavaScript1', count: 38},
-      {value: 'React1', count: 30},
-      {value: 'Nodejs1', count: 28},
-      {value: 'Express.js1', count: 25},
-      {value: 'HTML51', count: 33},
-      {value: 'MongoDB1', count: 18},
-      {value: 'CSS31', count: 20},
-    ]);
+    getList();
   };
 
   const logout = () => {
@@ -46,8 +45,13 @@ const TopicPanel = observer(() => {
       title: '系统提示',
       message: '确定退出登陆吗？',
       onConfirm(done) {
-        clearUser();
-        done();
+        userLogout().catch(() => {}); // logout api
+        // keep token
+        setTimeout(() => {
+          setUserToken('');
+          clearUser();
+          done();
+        }, 0);
       },
     });
   };
@@ -69,10 +73,30 @@ const TopicPanel = observer(() => {
       });
       return;
     }
-
+    setTopic(item);
     setLinkVisible(true);
   };
 
+  const getList = () => {
+    listTopic({pageNum, pageSize}).then(res => {
+      if (!res || !res.rows) return;
+      setDataList(
+        res.rows.map(v => ({...v, value: v.name, count: v.fontSize})),
+      );
+
+      if (res.rows.length < pageSize || pageNum * pageSize == res.total) {
+        setPageNum(1);
+        return;
+      }
+      setPageNum(pre => pre + 1);
+    });
+  };
+
+  useEffect(() => {
+    getList();
+  }, []);
+
+  // tag item render, size by count[min,max]
   const ItemRenderer = (tag, size, color) => (
     <View key={tag.value} style={styles.tagItemWrap}>
       <TouchableOpacity style={styles.tagItem} onPress={() => clickItem(tag)}>
@@ -100,9 +124,9 @@ const TopicPanel = observer(() => {
 
       <View style={styles.topicWrap}>
         <TagCloud
-          minSize={12}
-          maxSize={35}
-          tags={data}
+          minSize={8}
+          maxSize={20}
+          tags={dataList}
           renderer={ItemRenderer}
         />
       </View>
@@ -113,7 +137,7 @@ const TopicPanel = observer(() => {
         {isUsered ? (
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Text style={{color: '#fff', fontSize: 16}}>
-              欢迎你！{userInfo.account}
+              欢迎你！{userInfo.username}
             </Text>
             <Button
               type="outline"
@@ -133,7 +157,6 @@ const TopicPanel = observer(() => {
             type="outline"
             buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
             onPress={() => {
-              console.log(userInfo);
               setVisible(true);
             }}>
             账号登陆
@@ -165,7 +188,11 @@ const TopicPanel = observer(() => {
         }}
       />
 
-      <TopicLinkDialog visible={linkVisible} setVisible={setLinkVisible} />
+      <TopicLinkDialog
+        visible={linkVisible}
+        setVisible={setLinkVisible}
+        linkTopic={topic}
+      />
     </View>
   );
 });

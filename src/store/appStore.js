@@ -18,6 +18,8 @@ class AppStore {
       name: 'appStore',
       properties: ['machineToken', 'userToken'],
       storage: AsyncStorage,
+      //expireIn: 10000, // One day in milliseconds
+      //removeOnExpiration: true,
     }).then(
       action(res => {
         // console.log(res);

@@ -15,8 +15,6 @@ class CounterStore {
   }
 
   increment() {
-    console.log('ddd');
-    console.log(this);
     this.count += 1;
   }
 
