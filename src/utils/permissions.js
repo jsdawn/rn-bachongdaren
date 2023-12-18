@@ -8,7 +8,7 @@ export const requestPermissions = () => {
       return resolve(true);
     }
 
-    console.log('需要去获取');
+    console.log('requestPermissions：需要去获取权限');
 
     PermissionsAndroid.requestMultiple([
       PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
@@ -19,16 +19,21 @@ export const requestPermissions = () => {
     ])
       .then(granted => {
         let isPermisOK = true;
+        let noPermisKey = '';
         for (const key in granted) {
           if (Object.hasOwnProperty.call(granted, key)) {
             const val = granted[key];
             if (val != PermissionsAndroid.RESULTS.GRANTED) {
               isPermisOK = false;
+              noPermisKey = key;
             }
           }
         }
-        console.log(granted);
-        resolve(true);
+        if (isPermisOK) {
+          resolve(true);
+        } else {
+          reject('ERROR: no Permissions [' + noPermisKey + ']');
+        }
       })
       .catch(err => {
         reject(err);
@@ -54,10 +59,10 @@ const checkPermissions = async () => {
   );
 
   if (granted1 && granted2 && granted3 && granted4 && granted5) {
-    console.log('检查权限都有了');
+    console.log('checkPermissions：检查权限满足');
     return true;
   } else {
-    console.log('检查权限无无无');
+    console.log('checkPermissions：检查权限不满足');
     return false;
   }
 };

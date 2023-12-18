@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
-import {TouchableOpacity, Text, View, Image, Alert} from 'react-native';
+import {TouchableOpacity, Text, View, Image} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
@@ -9,7 +9,7 @@ import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {Button, makeStyles} from '@rneui/themed';
 
-import {sleep} from '@utils/index';
+import {requestPermissions} from '@utils/permissions';
 import {listTopic, userLogout} from '@api/index';
 import {useAppStore} from '@store/appStore';
 import {useUserStore} from '@store/userStore';
@@ -19,22 +19,13 @@ const TopicPanel = observer(() => {
   const {setUserToken} = useAppStore();
   const {userInfo, clearUser, isUsered} = useUserStore();
 
+  const [isPermisOK, setIsPermisOK] = useState(false);
   const [visible, setVisible] = useState(false);
   const [linkVisible, setLinkVisible] = useState(false);
   const [pageNum, setPageNum] = useState(1);
   const [pageSize] = useState(10);
-  const [dataList, setDataList] = useState([]);
+  const [dataList, setDataList] = useState([]); // [{value,count}, ...]
   const [topic, setTopic] = useState({}); // 当前话题
-
-  const [data, setData] = useState([
-    {value: 'JavaScript', count: 38},
-    {value: 'React', count: 30},
-    {value: 'Nodejs', count: 28},
-    {value: 'Express.js', count: 25},
-    {value: 'HTML5', count: 33},
-    {value: 'MongoDB', count: 18},
-    {value: 'CSS3', count: 20},
-  ]);
 
   const changeTopics = () => {
     getList();
@@ -73,6 +64,17 @@ const TopicPanel = observer(() => {
       });
       return;
     }
+
+    if (!isPermisOK) {
+      MessageBox.show({
+        title: '权限提示',
+        message: '系统权限不足，请检查应用权限列表',
+        showCancelButton: false,
+        confirmButtonText: '好的',
+      });
+      return;
+    }
+
     setTopic(item);
     setLinkVisible(true);
   };
@@ -83,7 +85,7 @@ const TopicPanel = observer(() => {
       setDataList(
         res.rows.map(v => ({...v, value: v.name, count: v.fontSize})),
       );
-
+      // update page num
       if (res.rows.length < pageSize || pageNum * pageSize == res.total) {
         setPageNum(1);
         return;
@@ -94,6 +96,12 @@ const TopicPanel = observer(() => {
 
   useEffect(() => {
     getList();
+
+    requestPermissions()
+      .then(() => {
+        setIsPermisOK(true);
+      })
+      .catch(() => {});
   }, []);
 
   // tag item render, size by count[min,max]

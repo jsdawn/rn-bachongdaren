@@ -22,23 +22,25 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
   const navigation = useNavigation();
 
   const {clearUser} = useUserStore();
-  const {setQueue, setTopic, setListener} = useListenStore();
+  /**
+   * waitKey: '',
+    ranking: undefined,
+    waitTime: 0,
+   */
+  const {listenInfo, setTask, setTopic, setListener, resetListen} =
+    useListenStore();
 
+  // 连接状态
   const [status, setStatus] = useState(StatusCode.QUEUE);
   const statusRef = useRef(status);
   statusRef.current = status; // 跟踪status的当前值
 
   const timer = useRef(null);
-  const [queueInfo, setQueueInfo] = useState({
-    waitKey: '',
-    ranking: undefined,
-    waitTime: 0,
-  });
+  // 历史倾听师
   const [history, setHistory] = useState([]);
 
   const closeDialog = isLogout => {
     setStatus(StatusCode.QUEUE);
-    setQueueInfo({});
     if (isLogout) {
       clearUser();
     }
@@ -62,32 +64,33 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
       });
   };
 
+  // 创建排队 task
   const fetchQueueInfo = () => {
-    if (!linkTopic?.name) return;
+    setStatus(StatusCode.QUEUE);
     createListen({
       topic: linkTopic.name,
     }).then(res => {
       if (statusRef.current != StatusCode.QUEUE) {
-        // 判断状态是否已经改变
-        return;
+        return; // 状态已改变
       }
       if (!res.data) return;
 
-      setQueueInfo(res.data || {});
+      setTask(res.data);
+      // 定时获取
       timer.current = setTimeout(() => {
         fetchQueueStatus(res.data.waitKey);
       }, res.data.waitTime * 1000);
     });
   };
 
+  // 查询排队状态，获取倾听师信息
   const fetchQueueStatus = _waitKey => {
     if (!_waitKey) return;
     getListenStatus({
       waitKey: _waitKey,
     }).then(res => {
       if (statusRef.current != StatusCode.QUEUE) {
-        // 判断状态是否已经改变
-        return;
+        return; // 状态已改变
       }
       if (!res.data) return;
 
@@ -97,17 +100,18 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
         return;
       }
 
-      setQueueInfo(res.data || {});
+      // 否则，继续排队
+      setTask(res.data);
       timer.current = setTimeout(() => {
         fetchQueueStatus(res.data.waitKey);
       }, res.data.waitTime * 1000);
     });
   };
 
+  // 准备就绪，跳转拨号页
   const fetchLinkAndCall = _listener => {
     setStatus(StatusCode.LINKING);
     // 缓存倾听信息
-    setQueue(queueInfo);
     setTopic(linkTopic);
     setListener(_listener);
     // 获取倾听者信息，跳转拨打页
@@ -119,9 +123,11 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
     // 由组件处理取消逻辑
     setStatus(StatusCode.CANCEL);
 
+    if (!listenInfo.task?.dialogId) return;
+    // 更新 log状态
     updateDialogStatus({
-      id: queueInfo.dialogId,
-      status: 10,
+      id: listenInfo.task.dialogId,
+      status: 10, // 用户取消
     }).catch(() => {});
   };
 
@@ -130,8 +136,10 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
       if (timer.current) clearTimeout(timer.current);
       return;
     }
+    if (!linkTopic?.name) return;
 
-    setQueueInfo({});
+    // init data
+    resetListen();
     setHistory([]);
     setStatus(StatusCode.QUEUE);
     fetchHistory();
@@ -149,7 +157,8 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
       <Dialog.Title title="倾诉排队中..." titleStyle={{textAlign: 'center'}} />
       <Text style={{textAlign: 'center'}}>
         排在您前面的还有
-        {queueInfo.ranking == undefined ? '--' : queueInfo.ranking}人
+        {listenInfo.task?.ranking == undefined ? '--' : listenInfo.task.ranking}
+        人
       </Text>
       <View style={styles.actions}>
         <Button

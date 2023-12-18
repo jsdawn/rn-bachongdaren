@@ -1,25 +1,34 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {observer} from 'mobx-react';
-import {Text, View, ImageBackground, NativeModules} from 'react-native';
+import {
+  Text,
+  View,
+  ImageBackground,
+  NativeModules,
+  NativeEventEmitter,
+} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
 
-import {sleep} from '@utils/index';
 import {requestPermissions} from '@utils/permissions';
+import {updateDialogStatus} from '@api/index';
 import {useListenStore} from '@store/listenStore';
 import {useUserStore} from '@store/userStore';
 
 const {AutoAnswerModule} = NativeModules;
 
 const StatusCode = {
-  DIALING: 0,
-  CALLING: 1,
-  HANGUP: -1,
+  DIALING: 0, // 拨号
+  CALLING: 1, // 通话中
+  HANGUP: -1, // 挂断
 };
 
 const ListenCenter = ({route}) => {
   const styles = useStyles();
+
+  const eventEmitter = new NativeEventEmitter(AutoAnswerModule);
+  const eventListener = useRef(null);
 
   const {listenInfo} = useListenStore();
   const {name, phone} = route.params || {};
@@ -30,36 +39,96 @@ const ListenCenter = ({route}) => {
   const statusRef = useRef(status);
   statusRef.current = status; // 跟踪status的当前值
 
+  // 通话状态
+  const [callState, setCallState] = useState({});
+  const callStateRef = useRef(callState);
+  callStateRef.current = callState;
+
+  // 前一次通话记录
+  const preCallLog = useRef({
+    callDuration: '',
+    phNumber: '',
+    startDate: '',
+  });
+
   const timer = useRef(null); // 退出timer
-  const timerLog = useRef(null); // 退出timer
+  const timerLog = useRef(null); // 通话记录timer
   const [outNum, setOutNum] = useState(10);
   const timerDur = useRef(null); // 时长timer
-  const [duration, setDuration] = useState(0);
 
-  const beDialing = () => {
+  const [duration, setDuration] = useState(0); // 秒
+  const durationRef = useRef(duration);
+  durationRef.current = duration;
+
+  // 正在拨号
+  const toBeDialing = () => {
     setStatus(StatusCode.DIALING);
   };
 
-  const beCalling = () => {
+  // 通话中
+  const toBeCalling = () => {
     setStatus(StatusCode.CALLING);
     setDuration(0);
     timerDur.current = setInterval(() => {
       setDuration(pre => pre + 1);
     }, 1000);
-    // 定时获取通话记录时长 (获取不到当前正在拨打的记录)
-    timerLog.current = setInterval(() => {
-      AutoAnswerModule.getLastCall();
-    }, 3000);
+
+    AutoAnswerModule.getLastCall().then(res => {
+      preCallLog.current = res;
+    });
   };
 
-  const beHangUp = () => {
-    AutoAnswerModule.endPhoneCalling();
+  // 挂断后，定时获取最近通话记录
+  const getLastCallInfo = () => {
+    AutoAnswerModule.getLastCall().then(res => {
+      if (!res.phNumber || res.startDate == preCallLog.current.startDate) {
+        timerLog.current = setTimeout(() => {
+          getLastCallInfo();
+        }, 1000);
+        return;
+      }
+      if (
+        res.startDate != preCallLog.current.startDate &&
+        res.phNumber == listenInfo.listener.calledNo &&
+        listenInfo.task?.dialogId
+      ) {
+        console.log(res);
+        // 最近通话记录
+        updateDialogStatus({
+          id: listenInfo.task?.dialogId,
+          waitDuring: durationRef.current - res.callDuration,
+          callDuring: res.callDuration,
+          status: 9, // 通话结束
+        }).catch(() => {});
+      }
+    });
+  };
+
+  // 挂断
+  const toBeHangUp = isManual => {
+    if (isManual) {
+      // 页面按钮触发 挂断通话。等待监听处理
+      AutoAnswerModule.endPhoneCalling();
+      return;
+    }
+
+    // 监听到原生通话挂断
     setStatus(StatusCode.HANGUP);
     if (timerDur.current) clearInterval(timerDur.current);
-    setOutNum(10);
-    timer.current = setInterval(() => {
-      setOutNum(pre => pre - 1);
-    }, 1000);
+    // 获取通话记录
+    getLastCallInfo();
+    // 更新 log状态
+    if (listenInfo.task?.dialogId) {
+      updateDialogStatus({
+        id: listenInfo.task?.dialogId,
+        status: 9, // 通话结束
+      }).catch(() => {});
+    }
+    // 登出读条
+    // setOutNum(10);
+    // timer.current = setInterval(() => {
+    //   setOutNum(pre => pre - 1);
+    // }, 1000);
   };
 
   const fmtDuration = num => {
@@ -71,30 +140,58 @@ const ListenCenter = ({route}) => {
     return (h > 0 ? `${h}:` : '') + `${m}:${s}`;
   };
 
-  useEffect(() => {
-    // sleep(1000).then(() => {
-    //   beCalling();
-    // });
-    requestPermissions().then(res => {
-      AutoAnswerModule.callPhone(listenInfo.listener.calledNo);
-      beCalling();
+  // 监听原生通话状态 处理函数
+  // 注：目前判断不出是否已接听，按拨号即接听处理）
+  const callStateHandler = params => {
+    console.log('======event.eventProperty=====');
+    console.log(params);
+
+    setCallState(pre => {
+      if (pre.isCalling && !params.isCalling) {
+        // 原生挂断，calling -> no calling
+        toBeHangUp();
+      } else if (!pre.isCalling && params.isCalling) {
+        // 原生拨号，no calling -> calling
+        toBeCalling();
+      }
+
+      return params;
     });
+  };
 
-    return () => {
-      if (timerDur.current) clearInterval(timerDur.current);
-      if (timer.current) clearInterval(timer.current);
-      if (timerLog.current) clearInterval(timerLog.current);
-    };
-  }, []);
-
+  // 退出登陆
   useEffect(() => {
-    // 退出登陆
     if (outNum == 0) {
       if (timer.current) clearInterval(timer.current);
       clearUser();
       navigation.goBack();
     }
   }, [outNum]);
+
+  // init start
+  useEffect(() => {
+    requestPermissions().then(() => {
+      if (listenInfo.listener?.calledNo) {
+        AutoAnswerModule.callPhone(listenInfo.listener.calledNo);
+      }
+    });
+
+    eventListener.current = eventEmitter.addListener(
+      'callStateChanged',
+      callStateHandler,
+    );
+
+    return () => {
+      if (timerDur.current) clearInterval(timerDur.current);
+      if (timer.current) clearInterval(timer.current);
+      if (timerLog.current) clearInterval(timerLog.current);
+
+      if (eventListener.current) {
+        eventListener.current.remove();
+      }
+      AutoAnswerModule.unregisterPhoneStateListener();
+    };
+  }, []);
 
   // ===Status Components===
 
@@ -133,7 +230,14 @@ const ListenCenter = ({route}) => {
                 <Button buttonStyle={styles.panelBtn} size="sm">
                   重新连线 麦当劳叔叔
                 </Button>
-                <Button buttonStyle={styles.panelBtn} size="sm">
+                <Button
+                  buttonStyle={styles.panelBtn}
+                  size="sm"
+                  onPress={() => {
+                    AutoAnswerModule.getLastCall().then(res => {
+                      console.log(res);
+                    });
+                  }}>
                   换一个人倾诉
                 </Button>
                 <Text style={{fontWeight: 'bold', marginTop: 10}}>
@@ -151,7 +255,9 @@ const ListenCenter = ({route}) => {
               flexDirection: 'row',
               justifyContent: 'flex-end',
             }}>
-            <Button buttonStyle={styles.finishBtn} onPress={() => beHangUp()}>
+            <Button
+              buttonStyle={styles.finishBtn}
+              onPress={() => toBeHangUp(true)}>
               结束倾诉
             </Button>
           </View>

@@ -4,9 +4,9 @@ import {configure, makeAutoObservable} from 'mobx';
 configure({useProxies: 'never'});
 
 class ListenStore {
-  queue = {};
-  topic = {};
-  listener = {};
+  task = {}; // 任务信息
+  topic = {}; // 话题信息
+  listener = {}; // 倾听师信息
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
@@ -14,14 +14,14 @@ class ListenStore {
 
   get listenInfo() {
     return {
-      queue: this.queue,
+      task: this.task,
       topic: this.topic,
       listener: this.listener,
     };
   }
 
-  setQueue(val) {
-    this.queue = val || {};
+  setTask(val) {
+    this.task = val || {};
   }
 
   setTopic(val) {
@@ -33,6 +33,7 @@ class ListenStore {
   }
 
   resetListen() {
+    this.task = {};
     this.topic = {};
     this.listener = {};
   }

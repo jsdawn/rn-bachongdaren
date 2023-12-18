@@ -33,7 +33,8 @@ import java.util.Date;
 public class AutoAnswerModule extends ReactContextBaseJavaModule {
   private static final String TAG = "AutoAnswerModule";
   private final TelecomManager telecomManager;
-  private TelephonyManager telephonyManager;
+  private MyCallStateListener myCallStateListener;
+  private MyPhoneStateListener myPhoneStateListener;
   private boolean isCalling = false;
   private long startTime;
   private long endTime;
@@ -109,15 +110,15 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
   //注册监听
   @ReactMethod
   public void registerPhoneStateListener() {
-    telephonyManager = (TelephonyManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+    TelephonyManager telephonyManager = (TelephonyManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
     if (telephonyManager != null) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         // api 31
-        MyCallStateListener listener = new MyCallStateListener();
-        telephonyManager.registerTelephonyCallback(getReactApplicationContext().getMainExecutor(), listener);
+        myCallStateListener = new MyCallStateListener();
+        telephonyManager.registerTelephonyCallback(getReactApplicationContext().getMainExecutor(), myCallStateListener);
       } else {
-        MyPhoneStateListener listener = new MyPhoneStateListener();
-        telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+        myPhoneStateListener = new MyPhoneStateListener();
+        telephonyManager.listen(myPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
       }
     }
   }
@@ -130,7 +131,7 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
           startTime = 0;
           endTime = 0;
         }
-        Toast.makeText(getReactApplicationContext(), "响铃中", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getReactApplicationContext(), "响铃中", Toast.LENGTH_SHORT).show();
         // startAutoAnswer();
         break;
       case TelephonyManager.CALL_STATE_IDLE:
@@ -140,7 +141,7 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
           endTime = System.currentTimeMillis();
           isCalling = false;
         }
-        Toast.makeText(getReactApplicationContext(), "无活动", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getReactApplicationContext(), "无活动", Toast.LENGTH_SHORT).show();
         break;
       case TelephonyManager.CALL_STATE_OFFHOOK:
         // state=2, 拨号中，处于活动状态
@@ -150,12 +151,12 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
           endTime = 0;
           isCalling = true;
         }
-        Toast.makeText(getReactApplicationContext(), "正在拨号，处于活动状态", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getReactApplicationContext(), "正在拨号，处于活动状态", Toast.LENGTH_SHORT).show();
         break;
     }
     WritableMap params = Arguments.createMap();
-    params.putString("state", String.valueOf(state));
-    params.putString("isCalling", String.valueOf(isCalling));
+    params.putInt("state", state);
+    params.putBoolean("isCalling", isCalling);
     params.putString("startTime", formatTime(startTime));
     params.putString("endTime", formatTime(endTime));
     sendEvent(getReactApplicationContext(), "callStateChanged", params);
@@ -183,29 +184,42 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
   public void getLastCall(Promise promise) {
     String phNumber = "";
     String callDuration = "";
+    String startDate = "";
     Cursor cur = getReactApplicationContext().getContentResolver().query(CallLog.Calls.CONTENT_URI, null,
             null, null, android.provider.CallLog.Calls.DATE + " DESC");
 
     int number = cur.getColumnIndex(CallLog.Calls.NUMBER);
     int duration = cur.getColumnIndex(CallLog.Calls.DURATION);
+    int date = cur.getColumnIndex(CallLog.Calls.DATE);
     while (cur.moveToNext()) {
       phNumber = cur.getString(number);
       callDuration = cur.getString(duration);
+      startDate = cur.getString(date);
       break;
     }
     cur.close();
     Toast.makeText(getReactApplicationContext(), phNumber + ": " + callDuration, Toast.LENGTH_SHORT).show();
-    promise.resolve(phNumber + ": " + callDuration);
+    WritableMap params = Arguments.createMap();
+    params.putString("phNumber", phNumber);
+    params.putString("callDuration", callDuration);
+    params.putString("startDate", startDate);
+    promise.resolve(params);
   }
 
 
   //取消注册监听
   @ReactMethod
   public void unregisterPhoneStateListener() {
-//    telephonyManager = (TelephonyManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-//    if (telephonyManager != null && phoneStateListener != null) {
-//      telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-//    }
+    TelephonyManager telephonyManager = (TelephonyManager) getReactApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+
+    if (telephonyManager != null) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && myCallStateListener != null) {
+        // api 31
+        telephonyManager.unregisterTelephonyCallback(myCallStateListener);
+      } else if (myPhoneStateListener != null) {
+        telephonyManager.listen(myPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+      }
+    }
   }
 
 }
