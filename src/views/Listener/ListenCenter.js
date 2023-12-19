@@ -10,8 +10,10 @@ import {
 
 import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
+import TopicLinkDialog from '@views/Home/components/TopicLinkDialog';
 
 import {requestPermissions} from '@utils/permissions';
+import useStateRef from '@utils/useStateRef';
 import {updateDialogStatus} from '@api/index';
 import {useListenStore} from '@store/listenStore';
 import {useUserStore} from '@store/userStore';
@@ -24,41 +26,30 @@ const StatusCode = {
   HANGUP: -1, // 挂断
 };
 
-const ListenCenter = ({route}) => {
+const ListenCenter = () => {
   const styles = useStyles();
 
   const eventEmitter = new NativeEventEmitter(AutoAnswerModule);
   const eventListener = useRef(null);
-
   const {listenInfo} = useListenStore();
-  const {name, phone} = route.params || {};
   const navigation = useNavigation();
   const {clearUser} = useUserStore();
 
-  const [status, setStatus] = useState(StatusCode.DIALING);
-  const statusRef = useRef(status);
-  statusRef.current = status; // 跟踪status的当前值
-
+  const [linkVisible, setLinkVisible] = useState(false);
+  const [status, setStatus, statusRef] = useStateRef(StatusCode.DIALING);
   // 通话状态
   const [callState, setCallState] = useState({});
-  const callStateRef = useRef(callState);
-  callStateRef.current = callState;
-
   // 前一次通话记录
   const preCallLog = useRef({
     callDuration: '',
     phNumber: '',
     startDate: '',
   });
-
   const timer = useRef(null); // 退出timer
   const timerLog = useRef(null); // 通话记录timer
   const [outNum, setOutNum] = useState(10);
   const timerDur = useRef(null); // 时长timer
-
-  const [duration, setDuration] = useState(0); // 秒
-  const durationRef = useRef(duration);
-  durationRef.current = duration;
+  const [duration, setDuration, durationRef] = useStateRef(0); // 秒
 
   // 正在拨号
   const toBeDialing = () => {
@@ -89,7 +80,7 @@ const ListenCenter = ({route}) => {
       }
       if (
         res.startDate != preCallLog.current.startDate &&
-        res.phNumber == listenInfo.listener.calledNo &&
+        res.phNumber == listenInfo.listener?.calledNo &&
         listenInfo.task?.dialogId
       ) {
         console.log(res);
@@ -97,7 +88,7 @@ const ListenCenter = ({route}) => {
         updateDialogStatus({
           id: listenInfo.task?.dialogId,
           waitDuring: durationRef.current - res.callDuration,
-          callDuring: res.callDuration,
+          callDuring: +res.callDuration,
           status: 9, // 通话结束
         }).catch(() => {});
       }
@@ -113,6 +104,8 @@ const ListenCenter = ({route}) => {
     }
 
     // 监听到原生通话挂断
+    // 取消监听
+    AutoAnswerModule.unregisterPhoneStateListener();
     setStatus(StatusCode.HANGUP);
     if (timerDur.current) clearInterval(timerDur.current);
     // 获取通话记录
@@ -159,6 +152,21 @@ const ListenCenter = ({route}) => {
     });
   };
 
+  // 重连成功
+  const onSuccessLink = () => {
+    // reset data
+    setStatus(StatusCode.DIALING);
+    setCallState({});
+    preCallLog.current = {};
+    setOutNum(10);
+    setDuration(0);
+    // call phone
+    if (listenInfo.listener?.calledNo) {
+      // 拨打电话并开始监听 phoneState
+      AutoAnswerModule.callPhone(listenInfo.listener.calledNo);
+    }
+  };
+
   // 退出登陆
   useEffect(() => {
     if (outNum == 0) {
@@ -172,6 +180,7 @@ const ListenCenter = ({route}) => {
   useEffect(() => {
     requestPermissions().then(() => {
       if (listenInfo.listener?.calledNo) {
+        // 拨打电话并开始监听 phoneState
         AutoAnswerModule.callPhone(listenInfo.listener.calledNo);
       }
     });
@@ -210,10 +219,10 @@ const ListenCenter = ({route}) => {
         <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
           <View style={{width: '40%'}}>
             <Text style={{paddingBottom: 10, color: '#fff'}}>
-              已为你连线 {listenInfo.listener.teacherName}
+              已为你连线 {listenInfo.listener?.teacherName}
             </Text>
             <Text style={{paddingBottom: 10, color: '#fff'}}>
-              你的烦恼是 【{listenInfo.topic.name}】
+              你的烦恼是 【{listenInfo.topic?.name}】
             </Text>
             {status == StatusCode.HANGUP && (
               <Text style={{paddingBottom: 10, color: '#fff'}}>通话已结束</Text>
@@ -227,8 +236,13 @@ const ListenCenter = ({route}) => {
                   style={{marginBottom: 20, fontSize: 17, fontWeight: 'bold'}}>
                   还有未说完的话...
                 </Text>
-                <Button buttonStyle={styles.panelBtn} size="sm">
-                  重新连线 麦当劳叔叔
+                <Button
+                  buttonStyle={styles.panelBtn}
+                  size="sm"
+                  onPress={() => {
+                    setLinkVisible(true);
+                  }}>
+                  重新连线 {listenInfo.listener?.teacherName}
                 </Button>
                 <Button
                   buttonStyle={styles.panelBtn}
@@ -276,7 +290,7 @@ const ListenCenter = ({route}) => {
           <View
             style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Text style={{fontSize: 25, color: '#fff'}}>
-              即将为你接通{name}，请拿起听筒……
+              即将为你接通{listenInfo.listener?.teacherName}，请拿起听筒……
             </Text>
           </View>
         )}
@@ -285,6 +299,14 @@ const ListenCenter = ({route}) => {
           <StatusCalling />
         )}
       </ImageBackground>
+
+      <TopicLinkDialog
+        visible={linkVisible}
+        setVisible={setLinkVisible}
+        linkTopic={listenInfo.topic}
+        linkListener={listenInfo.listener}
+        onSuccess={() => onSuccessLink()}
+      />
     </View>
   );
 };

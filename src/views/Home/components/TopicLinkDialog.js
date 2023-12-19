@@ -2,7 +2,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import {observer} from 'mobx-react';
 import {Text, View} from 'react-native';
 
-import {useNavigation} from '@react-navigation/native';
 import {Dialog, makeStyles, Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
@@ -17,9 +16,21 @@ const StatusCode = {
   CANCEL: -1,
 };
 
-const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
+/**
+ *
+ * @param {*} linkTopic 指定话题
+ * @param {*} linkListener 指定倾听师
+ * @param {*} onSuccess 连接成功回调
+ * @returns
+ */
+const TopicLinkDialog = ({
+  visible,
+  setVisible,
+  linkTopic,
+  linkListener,
+  onSuccess,
+}) => {
   const styles = useStyles();
-  const navigation = useNavigation();
 
   const {clearUser} = useUserStore();
   /**
@@ -65,10 +76,11 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
   };
 
   // 创建排队 task
-  const fetchQueueInfo = () => {
+  const fetchQueueInfo = teacherId => {
     setStatus(StatusCode.QUEUE);
     createListen({
       topic: linkTopic.name,
+      teacherId, // 指定倾听师
     }).then(res => {
       if (statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
@@ -89,12 +101,12 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
     getListenStatus({
       waitKey: _waitKey,
     }).then(res => {
-      if (statusRef.current != StatusCode.QUEUE) {
+      if (!visible || statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
       }
       if (!res.data) return;
 
-      if (res.data.calledNo) {
+      if (res.data.teacherId && res.data.calledNo) {
         // 排队结束，倾听师信息 res.data
         fetchLinkAndCall(res.data);
         return;
@@ -108,7 +120,7 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
     });
   };
 
-  // 准备就绪，跳转拨号页
+  // 准备就绪，缓存信息
   const fetchLinkAndCall = _listener => {
     setStatus(StatusCode.LINKING);
     // 缓存倾听信息
@@ -116,7 +128,9 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
     setListener(_listener);
     // 获取倾听者信息，跳转拨打页
     closeDialog();
-    navigation.navigate('ListenCenter');
+
+    // 成功
+    onSuccess?.();
   };
 
   const clickToCancel = () => {
@@ -140,9 +154,22 @@ const TopicLinkDialog = ({visible, setVisible, linkTopic}) => {
 
     // init data
     resetListen();
+
+    if (linkTopic?.name) {
+      setTopic(linkTopic);
+    }
+    if (linkListener?.teacherId) {
+      setListener(linkListener);
+    }
     setHistory([]);
     setStatus(StatusCode.QUEUE);
-    fetchHistory();
+
+    if (linkListener?.teacherId) {
+      // 指定倾听师
+      fetchQueueInfo(linkListener.teacherId);
+    } else {
+      fetchHistory();
+    }
 
     return () => {
       if (timer.current) clearTimeout(timer.current);

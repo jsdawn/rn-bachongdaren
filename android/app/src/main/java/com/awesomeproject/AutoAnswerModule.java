@@ -1,6 +1,5 @@
 package com.awesomeproject;
 
-import static androidx.core.content.ContextCompat.getMainExecutor;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.annotation.SuppressLint;
@@ -15,7 +14,6 @@ import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -77,7 +75,7 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
 
   @SuppressLint("MissingPermission")
   @ReactMethod
-  public void startAutoAnswer() {
+  public void answerPhoneCall() {
     if (telecomManager != null) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         telecomManager.acceptRingingCall();
@@ -102,7 +100,7 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
     callIntent.setData(Uri.parse("tel:" + phoneNumber));
     callIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     startActivity(getReactApplicationContext(), callIntent, null);
-    Toast.makeText(getReactApplicationContext(), "callIntent：" + phoneNumber, Toast.LENGTH_SHORT).show();
+//    Toast.makeText(getReactApplicationContext(), "callIntent：" + phoneNumber, Toast.LENGTH_SHORT).show();
 
     registerPhoneStateListener();
   }
@@ -132,7 +130,6 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
           endTime = 0;
         }
         // Toast.makeText(getReactApplicationContext(), "响铃中", Toast.LENGTH_SHORT).show();
-        // startAutoAnswer();
         break;
       case TelephonyManager.CALL_STATE_IDLE:
         // state=0, 无活动
@@ -198,7 +195,7 @@ public class AutoAnswerModule extends ReactContextBaseJavaModule {
       break;
     }
     cur.close();
-    Toast.makeText(getReactApplicationContext(), phNumber + ": " + callDuration, Toast.LENGTH_SHORT).show();
+//    Toast.makeText(getReactApplicationContext(), phNumber + ": " + callDuration, Toast.LENGTH_SHORT).show();
     WritableMap params = Arguments.createMap();
     params.putString("phNumber", phNumber);
     params.putString("callDuration", callDuration);

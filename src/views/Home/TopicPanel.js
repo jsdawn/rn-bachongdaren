@@ -7,6 +7,7 @@ import TopicLinkDialog from './components/TopicLinkDialog';
 import UserLoginDialog from './components/UserLoginDialog';
 import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
+import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
@@ -16,6 +17,7 @@ import {useUserStore} from '@store/userStore';
 
 const TopicPanel = observer(() => {
   const styles = useStyles();
+  const navigation = useNavigation();
   const {setUserToken} = useAppStore();
   const {userInfo, clearUser, isUsered} = useUserStore();
 
@@ -200,6 +202,9 @@ const TopicPanel = observer(() => {
         visible={linkVisible}
         setVisible={setLinkVisible}
         linkTopic={topic}
+        onSuccess={() => {
+          navigation.navigate('ListenCenter');
+        }}
       />
     </View>
   );
