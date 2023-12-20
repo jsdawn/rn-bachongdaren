@@ -8,15 +8,12 @@ import MsgToast from '@components/MsgToast';
 import {Dialog, makeStyles, Button, Icon} from '@rneui/themed';
 import UserSignInForm from './UserSignInForm';
 
-import {sleep} from '@utils/index';
 import {userLogin} from '@api/index';
-import {useAppStore} from '@store/appStore';
-import {useUserStore} from '@store/userStore';
+import {appStore} from '@store/appStore';
+import {userStore} from '@store/userStore';
 
 const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const styles = useStyles();
-  const {setUserToken} = useAppStore();
-  const {updateUser} = useUserStore();
   const [active, setActive] = useState('login'); // login/signIn
 
   const {
@@ -37,8 +34,8 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const onSubmit = async data => {
     const res = await userLogin(data).catch(() => {});
     if (!res) return;
-    setUserToken(res.token);
-    updateUser({
+    appStore.setUserToken(res.token);
+    userStore.updateUser({
       ...data,
       nickName: data.username,
     });

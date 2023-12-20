@@ -1,19 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
 import {useForm} from 'react-hook-form';
-import {Text, Image, View, ImageBackground} from 'react-native';
+import {View, ImageBackground} from 'react-native';
 
 import {InputController} from '@components/FormController';
 import {useNavigation} from '@react-navigation/native';
 import {Button, makeStyles} from '@rneui/themed';
 
 import {authDevice, register} from '@api/index';
-import {useAppStore} from '@store/appStore';
+import {appStore} from '@store/appStore';
 
 const DeviceLogin = () => {
   const styles = useStyles();
   const navigation = useNavigation();
-  const {androidId, machineToken, setMachineToken} = useAppStore();
 
   const {
     control,
@@ -33,7 +32,7 @@ const DeviceLogin = () => {
   const onSubmit = async data => {
     const res = await register(data).catch(() => {});
     if (!res || !res.data) return;
-    setMachineToken(res.data?.machine_token);
+    appStore.setMachineToken(res.data?.machine_token);
 
     const res2 = await authDevice({
       uuid: data.uuid,
@@ -46,7 +45,7 @@ const DeviceLogin = () => {
   };
 
   useEffect(() => {
-    setValue('uuid', androidId);
+    setValue('uuid', appStore.androidId);
   }, []);
 
   return (

@@ -8,28 +8,20 @@ import {Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
 import {authDevice} from '@api/index';
-import {useAppStore} from '@store/appStore';
+import {appStore} from '@store/appStore';
 
 const LaunchScreen = () => {
   const navigation = useNavigation();
-  const {
-    androidId,
-    setAndroidId,
-    machineToken,
-    userToken,
-    clearCache,
-    isHydrated,
-  } = useAppStore();
 
   const handleCache = () => {
-    clearCache();
+    appStore.clearCache();
   };
 
   const handleLaunch = async () => {
     const uuid = await getAndroidId();
-    setAndroidId(uuid);
+    appStore.setAndroidId(uuid);
 
-    if (!machineToken) {
+    if (!appStore.machineToken) {
       // 设备未登录
       navigation.navigate('DeviceLogin');
       return;
@@ -44,18 +36,18 @@ const LaunchScreen = () => {
   };
 
   useEffect(() => {
-    if (!isHydrated) return;
+    if (!appStore.isHydrated) return;
     sleep(2000).then(() => {
       handleLaunch();
     });
-  }, [isHydrated]);
+  }, [appStore.isHydrated]);
 
   return (
     <View style={styles.container}>
       <Text>LOADING...</Text>
-      <Text>androidId: {androidId}</Text>
-      <Text>machineToken: {machineToken}</Text>
-      <Text>userToken: {userToken}</Text>
+      <Text>androidId: {appStore.androidId}</Text>
+      <Text>machineToken: {appStore.machineToken}</Text>
+      <Text>userToken: {appStore.userToken}</Text>
 
       <View style={{height: 20}}></View>
       <Button onPress={handleCache}>清除缓存</Button>

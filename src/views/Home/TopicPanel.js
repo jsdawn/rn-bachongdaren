@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
-import {TouchableOpacity, Text, View, Image} from 'react-native';
+import {TouchableOpacity, Text, View, Image, BackHandler} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
@@ -12,14 +12,12 @@ import {Button, makeStyles} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
 import {listTopic, userLogout} from '@api/index';
-import {useAppStore} from '@store/appStore';
-import {useUserStore} from '@store/userStore';
+import {appStore} from '@store/appStore';
+import {userStore} from '@store/userStore';
 
-const TopicPanel = observer(() => {
+const TopicPanel = () => {
   const styles = useStyles();
   const navigation = useNavigation();
-  const {setUserToken} = useAppStore();
-  const {userInfo, clearUser, isUsered} = useUserStore();
 
   const [isPermisOK, setIsPermisOK] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -41,8 +39,8 @@ const TopicPanel = observer(() => {
         userLogout().catch(() => {}); // logout api
         // keep token
         setTimeout(() => {
-          setUserToken('');
-          clearUser();
+          appStore.setUserToken('');
+          userStore.clearUser();
           done();
         }, 0);
       },
@@ -57,7 +55,7 @@ const TopicPanel = observer(() => {
   };
 
   const clickItem = item => {
-    if (!isUsered) {
+    if (!userStore.isUsered) {
       MessageBox.show({
         title: '操作提示',
         message: '请先点击右下角按钮登陆账号',
@@ -97,6 +95,9 @@ const TopicPanel = observer(() => {
   };
 
   useEffect(() => {
+    // 禁用系统返回键
+    BackHandler.addEventListener('hardwareBackPress', () => true);
+
     getList();
 
     requestPermissions()
@@ -144,10 +145,10 @@ const TopicPanel = observer(() => {
       <View style={styles.loginBar}>
         <Button onPress={openHelper}>使用帮助</Button>
 
-        {isUsered ? (
+        {userStore.isUsered ? (
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Text style={{color: '#fff', fontSize: 16}}>
-              欢迎你！{userInfo.username}
+              欢迎你！{userStore.userInfo.username}
             </Text>
             <Button
               type="outline"
@@ -208,9 +209,9 @@ const TopicPanel = observer(() => {
       />
     </View>
   );
-});
+};
 
-export default TopicPanel;
+export default observer(TopicPanel);
 
 const useStyles = makeStyles(theme => ({
   container: {

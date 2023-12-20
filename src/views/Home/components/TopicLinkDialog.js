@@ -5,9 +5,10 @@ import {Text, View} from 'react-native';
 import {Dialog, makeStyles, Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
+import useStateRef from '@utils/useStateRef';
 import {createListen, getListenStatus, updateDialogStatus} from '@api/index';
-import {useListenStore} from '@store/listenStore';
-import {useUserStore} from '@store/userStore';
+import {listenStore} from '@store/listenStore';
+import {userStore} from '@store/userStore';
 
 const StatusCode = {
   QUEUE: 0,
@@ -21,6 +22,7 @@ const StatusCode = {
  * @param {*} linkTopic 指定话题
  * @param {*} linkListener 指定倾听师
  * @param {*} onSuccess 连接成功回调
+ * @param {*} onClosed 关闭成功回调 (isLogout)
  * @returns
  */
 const TopicLinkDialog = ({
@@ -29,23 +31,14 @@ const TopicLinkDialog = ({
   linkTopic,
   linkListener,
   onSuccess,
+  onClosed,
+  isExclude,
 }) => {
   const styles = useStyles();
 
-  const {clearUser} = useUserStore();
-  /**
-   * waitKey: '',
-    ranking: undefined,
-    waitTime: 0,
-   */
-  const {listenInfo, setTask, setTopic, setListener, resetListen} =
-    useListenStore();
-
   // 连接状态
-  const [status, setStatus] = useState(StatusCode.QUEUE);
-  const statusRef = useRef(status);
-  statusRef.current = status; // 跟踪status的当前值
-
+  const [status, setStatus, statusRef] = useStateRef(StatusCode.QUEUE);
+  const waitKeyRef = useRef('');
   const timer = useRef(null);
   // 历史倾听师
   const [history, setHistory] = useState([]);
@@ -53,9 +46,10 @@ const TopicLinkDialog = ({
   const closeDialog = isLogout => {
     setStatus(StatusCode.QUEUE);
     if (isLogout) {
-      clearUser();
+      userStore.clearUser();
     }
     setVisible(false);
+    onClosed?.(isLogout);
   };
 
   const fetchHistory = () => {
@@ -76,30 +70,37 @@ const TopicLinkDialog = ({
   };
 
   // 创建排队 task
-  const fetchQueueInfo = teacherId => {
-    setStatus(StatusCode.QUEUE);
-    createListen({
+  const fetchQueueInfo = () => {
+    const data = {
       topic: linkTopic.name,
-      teacherId, // 指定倾听师
-    }).then(res => {
+    };
+    if (!isExclude && linkListener?.teacherId) {
+      data.teacherId = linkListener?.teacherId;
+    }
+    if (isExclude && linkListener?.teacherId) {
+      data.params = {excludeTeacherIds: [linkListener.teacherId]};
+    }
+    setStatus(StatusCode.QUEUE);
+    createListen(data).then(res => {
       if (statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
       }
       if (!res.data) return;
 
-      setTask(res.data);
+      listenStore.setTask(res.data);
+      waitKeyRef.current = res.data.waitKey;
       // 定时获取
       timer.current = setTimeout(() => {
-        fetchQueueStatus(res.data.waitKey);
+        fetchQueueStatus();
       }, res.data.waitTime * 1000);
     });
   };
 
   // 查询排队状态，获取倾听师信息
-  const fetchQueueStatus = _waitKey => {
-    if (!_waitKey) return;
+  const fetchQueueStatus = () => {
+    if (!waitKeyRef.current) return;
     getListenStatus({
-      waitKey: _waitKey,
+      waitKey: waitKeyRef.current,
     }).then(res => {
       if (!visible || statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
@@ -113,9 +114,11 @@ const TopicLinkDialog = ({
       }
 
       // 否则，继续排队
-      setTask(res.data);
+      listenStore.setTask(res.data);
+      waitKeyRef.current = res.data.waitKey;
+      // 定时获取
       timer.current = setTimeout(() => {
-        fetchQueueStatus(res.data.waitKey);
+        fetchQueueStatus();
       }, res.data.waitTime * 1000);
     });
   };
@@ -124,8 +127,8 @@ const TopicLinkDialog = ({
   const fetchLinkAndCall = _listener => {
     setStatus(StatusCode.LINKING);
     // 缓存倾听信息
-    setTopic(linkTopic);
-    setListener(_listener);
+    listenStore.setTopic(linkTopic);
+    listenStore.setListener(_listener);
     // 获取倾听者信息，跳转拨打页
     closeDialog();
 
@@ -135,13 +138,17 @@ const TopicLinkDialog = ({
 
   const clickToCancel = () => {
     // 由组件处理取消逻辑
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
     setStatus(StatusCode.CANCEL);
 
-    if (!listenInfo.task?.dialogId) return;
+    if (!listenStore.task?.dialogId) return;
     // 更新 log状态
     updateDialogStatus({
-      id: listenInfo.task.dialogId,
+      id: listenStore.task.dialogId,
       status: 10, // 用户取消
+      waitKey: waitKeyRef.current,
     }).catch(() => {});
   };
 
@@ -153,20 +160,20 @@ const TopicLinkDialog = ({
     if (!linkTopic?.name) return;
 
     // init data
-    resetListen();
+    listenStore.resetListen();
 
     if (linkTopic?.name) {
-      setTopic(linkTopic);
+      listenStore.setTopic(linkTopic);
     }
     if (linkListener?.teacherId) {
-      setListener(linkListener);
+      listenStore.setListener(linkListener);
     }
     setHistory([]);
     setStatus(StatusCode.QUEUE);
 
-    if (linkListener?.teacherId) {
+    if (!isExclude && linkListener?.teacherId) {
       // 指定倾听师
-      fetchQueueInfo(linkListener.teacherId);
+      fetchQueueInfo();
     } else {
       fetchHistory();
     }
@@ -179,12 +186,14 @@ const TopicLinkDialog = ({
   // ===Status Components===
 
   // 排队中
-  const StatusQueue = () => (
+  const StatusQueue = observer(() => (
     <>
       <Dialog.Title title="倾诉排队中..." titleStyle={{textAlign: 'center'}} />
       <Text style={{textAlign: 'center'}}>
         排在您前面的还有
-        {listenInfo.task?.ranking == undefined ? '--' : listenInfo.task.ranking}
+        {listenStore.task?.ranking == undefined
+          ? '--'
+          : listenStore.task.ranking}
         人
       </Text>
       <View style={styles.actions}>
@@ -197,7 +206,7 @@ const TopicLinkDialog = ({
         </Button>
       </View>
     </>
-  );
+  ));
 
   // 倾听者历史
   const StatusHistory = () => (
@@ -250,7 +259,6 @@ const TopicLinkDialog = ({
     const [time, setTime] = useState(10);
 
     useEffect(() => {
-      console.log('取消连接组件');
       runTime();
       return () => {
         if (timerOut.current) clearInterval(timerOut.current);
