@@ -1,6 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
-import {TouchableOpacity, Text, View, Image, BackHandler} from 'react-native';
+import {
+  TouchableOpacity,
+  View,
+  BackHandler,
+  ImageBackground,
+} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
@@ -8,7 +13,7 @@ import UserLoginDialog from './components/UserLoginDialog';
 import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {useNavigation} from '@react-navigation/native';
-import {Button, makeStyles} from '@rneui/themed';
+import {Button, makeStyles, Text, Image, Divider} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
 import {listTopic, userLogout} from '@api/index';
@@ -118,64 +123,85 @@ const TopicPanel = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          style={styles.logo}
-          source={require('../../assets/image/logo_mini.png')}
-        />
-        <Button
-          buttonStyle={styles.hdButton}
-          size="lg"
-          titleStyle={{fontSize: 28}}
-          icon={{name: 'reload1', type: 'ant-design', color: '#fff', size: 20}}
-          onPress={changeTopics}>
-          换一批
-        </Button>
-      </View>
+      <ImageBackground
+        style={styles.bgImage}
+        source={require('@assets/image/topic_bg.jpg')}
+        resizeMode="stretch">
+        {/* <View style={styles.header}>
+          <Image
+            style={styles.logo}
+            source={require('@assets/image/logo_mini.png')}
+          />
+          <Button
+            buttonStyle={styles.hdButton}
+            size="lg"
+            titleStyle={{fontSize: 28}}
+            icon={{
+              name: 'reload1',
+              type: 'ant-design',
+              color: '#fff',
+              size: 20,
+            }}
+            onPress={changeTopics}>
+            换一批
+          </Button>
+        </View> */}
 
-      <View style={styles.topicWrap}>
-        <TagCloud
-          minSize={8}
-          maxSize={20}
-          tags={dataList}
-          renderer={ItemRenderer}
-        />
-      </View>
+        <View style={styles.topicWrap}>
+          <TagCloud
+            minSize={8}
+            maxSize={20}
+            tags={dataList}
+            renderer={ItemRenderer}
+          />
+        </View>
 
-      <View style={styles.loginBar}>
-        <Button onPress={openHelper}>使用帮助</Button>
+        {/* <View style={styles.loginBar}>
+          <Button onPress={openHelper}>使用帮助</Button>
 
-        {userStore.isUsered ? (
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text style={{color: '#fff', fontSize: 16}}>
-              欢迎你！{userStore.userInfo.username}
-            </Text>
+          {userStore.isUsered ? (
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <Text style={{color: '#fff', fontSize: 16}}>
+                欢迎你！{userStore.userInfo.username}
+              </Text>
+              <Button
+                type="outline"
+                size="sm"
+                buttonStyle={{
+                  backgroundColor: '#fff',
+                  borderRadius: 30,
+                  marginLeft: 10,
+                }}
+                titleStyle={{fontSize: 13}}
+                onPress={logout}>
+                退出登陆
+              </Button>
+            </View>
+          ) : (
             <Button
               type="outline"
-              size="sm"
-              buttonStyle={{
-                backgroundColor: '#fff',
-                borderRadius: 30,
-                marginLeft: 10,
-              }}
-              titleStyle={{fontSize: 13}}
-              onPress={logout}>
-              退出登陆
+              buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
+              onPress={() => {
+                setVisible(true);
+              }}>
+              账号登陆
             </Button>
-          </View>
-        ) : (
-          <Button
-            type="outline"
-            buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
-            onPress={() => {
-              setVisible(true);
-            }}>
-            账号登陆
-          </Button>
-        )}
-      </View>
+          )}
+        </View> */}
 
-      {/* <View style={styles.chatWrap}>
+        <View style={styles.logoWrap}>
+          <View style={{}}>
+            <Text style={styles.logoText}>设备编号：6883974989</Text>
+            <Text style={styles.logoText}>广州市格米中学</Text>
+          </View>
+          <Divider orientation="vertical" />
+          <Image
+            style={styles.logo}
+            source={require('@assets/image/logo_sm.png')}
+          />
+        </View>
+
+        {/* <View style={styles.chatWrap}>
         <Image
           style={styles.chatImg}
           source={require('../../assets/image/girl.png')}
@@ -187,26 +213,27 @@ const TopicPanel = () => {
         </View>
       </View> */}
 
-      {/* ==弹窗== */}
-      <UserLoginDialog
-        visible={visible}
-        setVisible={setVisible}
-        onSuccess={data => {
-          MsgToast.show({
-            text1: '登陆成功',
-            text2: `接下来请根据自己心情，在屏幕上选择你想倾听的话题！`,
-          });
-        }}
-      />
+        {/* ==弹窗== */}
+        <UserLoginDialog
+          visible={visible}
+          setVisible={setVisible}
+          onSuccess={data => {
+            MsgToast.show({
+              text1: '登陆成功',
+              text2: `接下来请根据自己心情，在屏幕上选择你想倾听的话题！`,
+            });
+          }}
+        />
 
-      <TopicLinkDialog
-        visible={linkVisible}
-        setVisible={setLinkVisible}
-        linkTopic={topic}
-        onSuccess={() => {
-          navigation.navigate('ListenCenter');
-        }}
-      />
+        <TopicLinkDialog
+          visible={linkVisible}
+          setVisible={setLinkVisible}
+          linkTopic={topic}
+          onSuccess={() => {
+            navigation.navigate('ListenCenter');
+          }}
+        />
+      </ImageBackground>
     </View>
   );
 };
@@ -215,8 +242,28 @@ export default observer(TopicPanel);
 
 const useStyles = makeStyles(theme => ({
   container: {
+    position: 'relative',
     flex: 1,
-    backgroundColor: '#f6f6f7',
+    backgroundColor: '#fff',
+  },
+  bgImage: {
+    flex: 1,
+  },
+
+  logoWrap: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    padding: 20,
+    flexDirection: 'row',
+  },
+  logo: {
+    width: 130,
+    height: 45,
+  },
+  logoText: {
+    fontSize: 24,
+    color: theme.colors.grey2,
   },
 
   header: {

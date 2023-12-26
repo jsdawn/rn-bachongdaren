@@ -32,10 +32,12 @@ export const requestPermissions = () => {
         if (isPermisOK) {
           resolve(true);
         } else {
+          console.warn('ERROR: no Permissions [' + noPermisKey + ']');
           reject('ERROR: no Permissions [' + noPermisKey + ']');
         }
       })
       .catch(err => {
+        console.warn('ERROR: no Permissions [' + noPermisKey + ']');
         reject(err);
       });
   });

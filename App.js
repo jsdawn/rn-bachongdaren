@@ -15,7 +15,7 @@ import ListenCenter from '@views/Listener/ListenCenter';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
-  <Stack.Navigator initialRouteName="LaunchScreen">
+  <Stack.Navigator initialRouteName="TopicPanel">
     <Stack.Screen
       name="LaunchScreen"
       component={LaunchScreen}
