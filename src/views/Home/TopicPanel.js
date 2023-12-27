@@ -13,7 +13,7 @@ import UserLoginDialog from './components/UserLoginDialog';
 import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {useNavigation} from '@react-navigation/native';
-import {Button, makeStyles, Text, Image, Divider} from '@rneui/themed';
+import {Button, makeStyles, Text, Image, useTheme} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
 import {listTopic, userLogout} from '@api/index';
@@ -22,6 +22,7 @@ import {userStore} from '@store/userStore';
 
 const TopicPanel = () => {
   const styles = useStyles();
+  const {theme} = useTheme();
   const navigation = useNavigation();
 
   const [isPermisOK, setIsPermisOK] = useState(false);
@@ -127,26 +128,6 @@ const TopicPanel = () => {
         style={styles.bgImage}
         source={require('@assets/image/topic_bg.jpg')}
         resizeMode="stretch">
-        {/* <View style={styles.header}>
-          <Image
-            style={styles.logo}
-            source={require('@assets/image/logo_mini.png')}
-          />
-          <Button
-            buttonStyle={styles.hdButton}
-            size="lg"
-            titleStyle={{fontSize: 28}}
-            icon={{
-              name: 'reload1',
-              type: 'ant-design',
-              color: '#fff',
-              size: 20,
-            }}
-            onPress={changeTopics}>
-            换一批
-          </Button>
-        </View> */}
-
         <View style={styles.topicWrap}>
           <TagCloud
             minSize={8}
@@ -156,62 +137,20 @@ const TopicPanel = () => {
           />
         </View>
 
-        {/* <View style={styles.loginBar}>
-          <Button onPress={openHelper}>使用帮助</Button>
-
-          {userStore.isUsered ? (
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <Text style={{color: '#fff', fontSize: 16}}>
-                欢迎你！{userStore.userInfo.username}
-              </Text>
-              <Button
-                type="outline"
-                size="sm"
-                buttonStyle={{
-                  backgroundColor: '#fff',
-                  borderRadius: 30,
-                  marginLeft: 10,
-                }}
-                titleStyle={{fontSize: 13}}
-                onPress={logout}>
-                退出登陆
-              </Button>
-            </View>
-          ) : (
-            <Button
-              type="outline"
-              buttonStyle={{backgroundColor: '#fff', borderRadius: 30}}
-              onPress={() => {
-                setVisible(true);
-              }}>
-              账号登陆
-            </Button>
-          )}
-        </View> */}
-
         <View style={styles.logoWrap}>
-          <View style={{}}>
+          <View style={styles.logoWrap_text}>
             <Text style={styles.logoText}>设备编号：6883974989</Text>
             <Text style={styles.logoText}>广州市格米中学</Text>
           </View>
-          <Divider orientation="vertical" />
           <Image
             style={styles.logo}
             source={require('@assets/image/logo_sm.png')}
           />
         </View>
 
-        {/* <View style={styles.chatWrap}>
-        <Image
-          style={styles.chatImg}
-          source={require('../../assets/image/girl.png')}
-        />
-        <View style={styles.bubble}>
-          <View style={styles.bubbleArrow}></View>
-          <View style={styles.bubbleArrow2}></View>
-          <Text style={styles.bubbleMsg}>同学可以先登陆账号哦～</Text>
+        <View style={styles.loginWrap}>
+          <Text style={styles.loginText}>点击登录</Text>
         </View>
-      </View> */}
 
         {/* ==弹窗== */}
         <UserLoginDialog
@@ -252,18 +191,41 @@ const useStyles = makeStyles(theme => ({
 
   logoWrap: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    padding: 20,
+    bottom: 35,
+    right: 16,
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoWrap_text: {
+    paddingRight: 20,
+    marginRight: 20,
+    alignItems: 'flex-end',
+    borderRightWidth: 1,
+    borderRightColor: theme.colors.grey2,
+    opacity: 0.4,
+  },
+  logoText: {
+    fontSize: 24,
+    color: theme.colors.grey2,
   },
   logo: {
     width: 130,
     height: 45,
   },
-  logoText: {
+
+  loginWrap: {
+    padding: 20,
+    position: 'absolute',
+    bottom: 20,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.grey3,
+    borderRadius: 100,
+  },
+  loginText: {
     fontSize: 24,
-    color: theme.colors.grey2,
+    color: '#fff',
   },
 
   header: {
@@ -301,70 +263,6 @@ const useStyles = makeStyles(theme => ({
   },
   tagText: {
     fontWeight: 'bold',
-    color: theme.colors.primary,
-  },
-
-  loginBar: {
-    paddingHorizontal: 20,
-    height: 60,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-  },
-
-  chatWrap: {
-    position: 'absolute',
-    bottom: 60,
-    right: 0,
-    zIndex: 10,
-  },
-  chatImg: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 260,
-    height: 250,
-  },
-  bubble: {
-    position: 'absolute',
-    right: 170,
-    bottom: 140,
-    marginTop: 15,
-    padding: 15,
-    width: 190,
-    height: 90,
-    borderColor: theme.colors.primary,
-    borderWidth: 1,
-    borderRadius: 10,
-    opacity: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  bubbleArrow: {
-    position: 'absolute',
-    right: -20,
-    top: 40,
-    width: 0,
-    height: 0,
-    borderWidth: 10,
-    borderRightColor: 'transparent',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderLeftColor: theme.colors.primary,
-  },
-  bubbleArrow2: {
-    position: 'absolute',
-    right: -19,
-    top: 40,
-    width: 0,
-    height: 0,
-    borderWidth: 10,
-    borderRightColor: 'transparent',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderLeftColor: '#fff',
-  },
-  bubbleMsg: {
     color: theme.colors.primary,
   },
 }));

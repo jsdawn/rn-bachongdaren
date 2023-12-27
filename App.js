@@ -7,11 +7,13 @@ import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {ThemeProvider, createTheme} from '@rneui/themed';
+import {ThemeProvider} from '@rneui/themed';
 import DeviceLogin from '@views/Home/DeviceLogin';
 import LaunchScreen from '@views/Home/LaunchScreen';
 import TopicPanel from '@views/Home/TopicPanel';
 import ListenCenter from '@views/Listener/ListenCenter';
+
+import {theme} from '@utils/themeConfig';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
@@ -38,12 +40,6 @@ const StackScreen = () => (
     />
   </Stack.Navigator>
 );
-
-const theme = createTheme({
-  lightColors: {
-    primary: '#304cff',
-  },
-});
 
 const App = () => {
   useEffect(() => {
