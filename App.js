@@ -17,7 +17,7 @@ import {theme} from '@utils/themeConfig';
 
 const Stack = createNativeStackNavigator();
 const StackScreen = () => (
-  <Stack.Navigator initialRouteName="TopicPanel">
+  <Stack.Navigator initialRouteName="LaunchScreen">
     <Stack.Screen
       name="LaunchScreen"
       component={LaunchScreen}

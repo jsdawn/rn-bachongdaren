@@ -23,6 +23,7 @@ public class MyPackage implements ReactPackage {
     // 注册 ToastModule 模块
     modules.add(new ToastModule(reactContext));
     modules.add(new AutoAnswerModule(reactContext));
+    modules.add(new MyReceiverModule(reactContext));
 
     return modules;
   }
