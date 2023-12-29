@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {observer} from 'mobx-react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, Dimensions} from 'react-native';
 import {getAndroidId} from 'react-native-device-info';
 
 import {useNavigation} from '@react-navigation/native';
@@ -37,9 +37,12 @@ const LaunchScreen = () => {
 
   useEffect(() => {
     if (!appStore.isHydrated) return;
-    sleep(2000).then(() => {
-      handleLaunch();
-    });
+    // sleep(2000).then(() => {
+    //   handleLaunch();
+    // });
+
+    const {height, width} = Dimensions.get('window');
+    console.log(height, width);
   }, [appStore.isHydrated]);
 
   return (
