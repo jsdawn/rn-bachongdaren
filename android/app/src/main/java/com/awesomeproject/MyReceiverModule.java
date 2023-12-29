@@ -14,6 +14,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
+
+//  手动注册接收器
 public class MyReceiverModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
   private final ReactApplicationContext mContext;
 
@@ -21,34 +23,21 @@ public class MyReceiverModule extends ReactContextBaseJavaModule implements Life
     @Override
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
-
       Toast.makeText(mContext, "action: " + action, Toast.LENGTH_SHORT).show();
-
-      if (action.equals("android.media.VOLUME_CHANGED_ACTION")) {
-        int valume = intent.getIntExtra("android.media.VOLUME_CHANGED_ACTION", 0);
-        Toast.makeText(mContext, "Volume changed: " + valume, Toast.LENGTH_SHORT).show();
-      }
-
-//      if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
-//        boolean plugged = (intent.getIntExtra("state", 0) == 1);
-//        String message = plugged ? "Headset plugged in" : "Headset plugged out";
-//        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
-//      }
     }
   };
 
   public MyReceiverModule(ReactApplicationContext reactContext) {
     super(reactContext);
     mContext = reactContext;
-//    registerBroadcastReceiver();
+    registerBroadcastReceiver();
   }
 
   @SuppressLint("UnspecifiedRegisterReceiverFlag")
   @ReactMethod
   private void registerBroadcastReceiver() {
     IntentFilter filter = new IntentFilter();
-    filter.addAction(Intent.ACTION_MEDIA_BUTTON);
-    filter.addAction(Intent.ACTION_HEADSET_PLUG);
+    filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
     mContext.registerReceiver(myBroadcastReceiver, filter);
   }
 

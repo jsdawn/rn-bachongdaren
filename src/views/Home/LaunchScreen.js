@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {observer} from 'mobx-react';
-import {StyleSheet, Text, View, NativeModules} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {getAndroidId} from 'react-native-device-info';
 
 import {useNavigation} from '@react-navigation/native';
@@ -9,8 +9,6 @@ import {Button} from '@rneui/themed';
 import {sleep} from '@utils/index';
 import {authDevice} from '@api/index';
 import {appStore} from '@store/appStore';
-
-const {MyReceiverModule} = NativeModules;
 
 const LaunchScreen = () => {
   const navigation = useNavigation();
@@ -39,11 +37,9 @@ const LaunchScreen = () => {
 
   useEffect(() => {
     if (!appStore.isHydrated) return;
-    // sleep(2000).then(() => {
-    //   handleLaunch();
-    // });
-
-    MyReceiverModule.registerBroadcastReceiver();
+    sleep(2000).then(() => {
+      handleLaunch();
+    });
   }, [appStore.isHydrated]);
 
   return (

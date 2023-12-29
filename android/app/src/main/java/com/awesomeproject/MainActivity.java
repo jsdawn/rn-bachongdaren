@@ -1,7 +1,12 @@
 package com.awesomeproject;
 
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.widget.Toast;
+
 import org.devio.rn.splashscreen.SplashScreen;
+
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
@@ -20,8 +25,20 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    SplashScreen.show(this); 
     super.onCreate(savedInstanceState);
+//    app 创建的时候
+    SplashScreen.show(this);
+    Toast.makeText(this, "onCreate！", Toast.LENGTH_SHORT).show();
+
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+//    app 开始的时候
+    Toast.makeText(this, "onStart！", Toast.LENGTH_SHORT).show();
+//    IntentFilter filter = new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+//    registerReceiver(airplaneModeChangeReceiver, filter);
   }
 
   /**
@@ -32,12 +49,12 @@ public class MainActivity extends ReactActivity {
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
     return new DefaultReactActivityDelegate(
-        this,
-        getMainComponentName(),
-        // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-        DefaultNewArchitectureEntryPoint.getFabricEnabled(), // fabricEnabled
-        // If you opted-in for the New Architecture, we enable Concurrent React (i.e. React 18).
-        DefaultNewArchitectureEntryPoint.getConcurrentReactEnabled() // concurrentRootEnabled
-        );
+            this,
+            getMainComponentName(),
+            // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+            DefaultNewArchitectureEntryPoint.getFabricEnabled(), // fabricEnabled
+            // If you opted-in for the New Architecture, we enable Concurrent React (i.e. React 18).
+            DefaultNewArchitectureEntryPoint.getConcurrentReactEnabled() // concurrentRootEnabled
+    );
   }
 }
