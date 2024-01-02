@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
-import {Text} from 'react-native';
 
-import {Dialog, makeStyles} from '@rneui/themed';
+import {Dialog, Text, makeStyles} from '@rneui/themed';
 
 import {isThenable} from '@utils/index';
 import {useMessageStore, messageStore} from '@store/messageStore';

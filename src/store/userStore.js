@@ -34,7 +34,7 @@ class UserStore {
   }
 
   get isUsered() {
-    return !!(this.user && this.user.username);
+    return !!(this.user && this.user.id);
   }
 
   updateUser(value) {

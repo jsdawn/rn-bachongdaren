@@ -1,7 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {observer} from 'mobx-react';
 import {
-  Text,
   View,
   ImageBackground,
   NativeModules,
@@ -10,7 +9,7 @@ import {
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import {Button, makeStyles} from '@rneui/themed';
+import {Button, Text, makeStyles} from '@rneui/themed';
 import TopicLinkDialog from '@views/Home/components/TopicLinkDialog';
 
 import {requestPermissions} from '@utils/permissions';

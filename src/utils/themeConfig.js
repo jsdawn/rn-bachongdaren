@@ -4,12 +4,12 @@ import {createTheme} from '@rneui/themed';
 export const theme = createTheme({
   mode: 'light',
   lightColors: {
-    primary: '#3368EC',
+    primary: '#3368EC', // custom：主题色
     secondary: '#ca71eb',
     background: '#ffffff',
     white: '#ffffff',
-    black: '#242424',
-    grey0: '#393e42',
+    black: '#4F5977', // custom: Text.color
+    grey0: '#687290', // custom: text-muted color
     grey1: '#43484d',
     grey2: '#5e6977',
     grey3: '#86939e',
@@ -18,8 +18,29 @@ export const theme = createTheme({
     greyOutline: '#bbb',
     searchBg: '#303337',
     success: '#52c41a',
-    warning: '#ff190c',
-    error: '#faad14',
+    warning: '#faad14',
+    error: '#ff190c',
     disabled: 'hsl(208, 8%, 90%)',
+  },
+  components: {
+    Button: {
+      radius: 100,
+    },
+    Text: {
+      h1Style: {
+        fontSize: 24,
+        color: '#687290',
+      },
+      h2Style: {
+        fontSize: 21,
+        color: '#687290',
+      },
+      h3Style: {
+        fontSize: 18,
+      },
+      h4Style: {
+        fontSize: 16,
+      },
+    },
   },
 });

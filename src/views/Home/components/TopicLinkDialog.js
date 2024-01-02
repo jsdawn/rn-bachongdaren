@@ -1,8 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {observer} from 'mobx-react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
-import {Dialog, makeStyles, Button} from '@rneui/themed';
+import {Dialog, Text, makeStyles, Button} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
 import useStateRef from '@utils/useStateRef';
@@ -152,14 +153,8 @@ const TopicLinkDialog = ({
     }).catch(() => {});
   };
 
-  useEffect(() => {
-    if (!visible) {
-      if (timer.current) clearTimeout(timer.current);
-      return;
-    }
-    if (!linkTopic?.name) return;
-
-    // init data
+  // init data
+  const initData = () => {
     listenStore.resetListen();
 
     if (linkTopic?.name) {
@@ -170,13 +165,24 @@ const TopicLinkDialog = ({
     }
     setHistory([]);
     setStatus(StatusCode.QUEUE);
-
+    return;
     if (!isExclude && linkListener?.teacherId) {
       // 指定倾听师
       fetchQueueInfo();
     } else {
+      // 查询历史倾听师
       fetchHistory();
     }
+  };
+
+  useEffect(() => {
+    if (!visible) {
+      if (timer.current) clearTimeout(timer.current);
+      return;
+    }
+    if (!linkTopic?.name) return;
+
+    initData();
 
     return () => {
       if (timer.current) clearTimeout(timer.current);
@@ -188,8 +194,13 @@ const TopicLinkDialog = ({
   // 排队中
   const StatusQueue = observer(() => (
     <>
-      <Dialog.Title title="倾诉排队中..." titleStyle={{textAlign: 'center'}} />
-      <Text style={{textAlign: 'center'}}>
+      <Text h2 style={styles.title}>
+        《{linkTopic?.name}》
+      </Text>
+      <Text h3 style={styles.subTitle}>
+        倾诉排队中...
+      </Text>
+      <Text style={styles.desc}>
         排在您前面的还有
         {listenStore.task?.ranking == undefined
           ? '--'
@@ -197,11 +208,7 @@ const TopicLinkDialog = ({
         人
       </Text>
       <View style={styles.actions}>
-        <Button
-          buttonStyle={styles.btn}
-          size="sm"
-          radius={8}
-          onPress={clickToCancel}>
+        <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
           我不等了
         </Button>
       </View>
@@ -225,8 +232,7 @@ const TopicLinkDialog = ({
       <View style={styles.actions}>
         <Button
           buttonStyle={styles.btn}
-          size="sm"
-          radius={8}
+          raised
           onPress={() => fetchLinkAndCall()}>
           我要连线新老师
         </Button>
@@ -242,11 +248,7 @@ const TopicLinkDialog = ({
         titleStyle={{textAlign: 'center'}}
       />
       <View style={styles.actions}>
-        <Button
-          buttonStyle={styles.btn}
-          size="sm"
-          radius={8}
-          onPress={clickToCancel}>
+        <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
           取消连线
         </Button>
       </View>
@@ -284,11 +286,7 @@ const TopicLinkDialog = ({
         <Dialog.Title title="已取消连线" titleStyle={{textAlign: 'center'}} />
         <Text style={{textAlign: 'center'}}>{time}秒后为你自动退出登陆</Text>
         <View style={styles.actions}>
-          <Button
-            buttonStyle={styles.btn}
-            size="sm"
-            radius={8}
-            onPress={() => closeDialog()}>
+          <Button buttonStyle={styles.btn} raised onPress={() => closeDialog()}>
             先不退出
           </Button>
         </View>
@@ -300,11 +298,13 @@ const TopicLinkDialog = ({
     <Dialog
       isVisible={visible}
       onBackdropPress={() => {}}
-      overlayStyle={styles.container}>
-      {status == StatusCode.QUEUE && <StatusQueue />}
-      {status == StatusCode.HISTORY && <StatusHistory />}
-      {status == StatusCode.LINKING && <StatusLinking />}
-      {status == StatusCode.CANCEL && <StatusCancel />}
+      overlayStyle={styles.wrap}>
+      <LinearGradient style={styles.container} colors={['#E7EEFA', '#D1E1FF']}>
+        {status == StatusCode.QUEUE && <StatusQueue />}
+        {status == StatusCode.HISTORY && <StatusHistory />}
+        {status == StatusCode.LINKING && <StatusLinking />}
+        {status == StatusCode.CANCEL && <StatusCancel />}
+      </LinearGradient>
     </Dialog>
   );
 };
@@ -312,20 +312,42 @@ const TopicLinkDialog = ({
 export default observer(TopicLinkDialog);
 
 const useStyles = makeStyles(theme => ({
+  wrap: {
+    position: 'relative',
+    padding: 0,
+    width: 400,
+    borderRadius: 20,
+  },
   container: {
-    width: 320,
-    borderRadius: 10,
+    paddingHorizontal: 70,
+    paddingVertical: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+
+  title: {
+    marginBottom: 15,
+  },
+  subTitle: {
+    marginBottom: 10,
+  },
+  desc: {
+    marginBottom: 20,
   },
 
   actions: {
-    marginTop: 20,
+    position: 'absolute',
+    bottom: -25,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
   },
   btn: {
     paddingHorizontal: 15,
-    minWidth: 110,
-    borderColor: '#999',
+    width: 160,
+    height: 50,
+    fontSize: 15,
   },
 
   historyItem: {

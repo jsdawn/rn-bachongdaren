@@ -45,7 +45,7 @@ const DeviceLogin = () => {
   };
 
   useEffect(() => {
-    setValue('uuid', appStore.androidId);
+    setValue('uuid', appStore.uuid);
   }, []);
 
   return (

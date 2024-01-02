@@ -37,6 +37,15 @@ export function userLogin(data) {
   });
 }
 
+// 用户信息by token
+export function getUserInfo(data) {
+  return request({
+    url: '/front/userInfo',
+    method: 'post',
+    data: data,
+  });
+}
+
 // 用户退出
 export function userLogout(query) {
   return request({

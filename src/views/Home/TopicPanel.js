@@ -10,10 +10,11 @@ import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
 import UserLoginDialog from './components/UserLoginDialog';
+import LogoFlag from '@components/LogoFlag';
 import MessageBox from '@components/MessageBox';
 import MsgToast from '@components/MsgToast';
 import {useNavigation} from '@react-navigation/native';
-import {Button, makeStyles, Text, Image, useTheme} from '@rneui/themed';
+import {Button, makeStyles, Text, useTheme} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
 import {listTopic, userLogout} from '@api/index';
@@ -50,13 +51,6 @@ const TopicPanel = () => {
           done();
         }, 0);
       },
-    });
-  };
-
-  const openHelper = () => {
-    MessageBox.show({
-      title: '使用帮助',
-      message: '这里是帮助指南',
     });
   };
 
@@ -115,7 +109,7 @@ const TopicPanel = () => {
 
   // tag item render, size by count[min,max]
   const ItemRenderer = (tag, size, color) => (
-    <View key={tag.value} style={styles.tagItemWrap}>
+    <View key={tag.value} style={{margin: 10}}>
       <TouchableOpacity style={styles.tagItem} onPress={() => clickItem(tag)}>
         <Text style={{...styles.tagText, fontSize: size}}>{tag.value}</Text>
       </TouchableOpacity>
@@ -123,34 +117,38 @@ const TopicPanel = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        style={{flex: 1}}
-        source={require('@assets/image/topic_bg.jpg')}
-        resizeMode="stretch">
+    <ImageBackground
+      style={{flex: 1}}
+      source={require('@assets/image/topic_bg.jpg')}
+      resizeMode="stretch">
+      <View style={styles.container}>
         <View style={styles.topicWrap}>
           <TagCloud
-            minSize={8}
-            maxSize={20}
+            minSize={15}
+            maxSize={25}
             tags={dataList}
             renderer={ItemRenderer}
           />
         </View>
 
-        <View style={styles.logoWrap}>
-          <View style={styles.logoWrap_text}>
-            <Text style={styles.logoText}>设备编号：6883974989</Text>
-            <Text style={styles.logoText}>广州市格米中学</Text>
+        {userStore.isUsered ? (
+          <View style={styles.loginWrap}>
+            <Text style={styles.loginText}>
+              欢迎您，{userStore.user.nickName}
+            </Text>
+            <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
+              <Text style={styles.logoutText}>退出登录</Text>
+            </TouchableOpacity>
           </View>
-          <Image
-            style={styles.logo}
-            source={require('@assets/image/logo_sm.png')}
-          />
-        </View>
-
-        <View style={styles.loginWrap}>
-          <Text style={styles.loginText}>点击登录</Text>
-        </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.loginWrap}
+            onPress={() => {
+              setVisible(true);
+            }}>
+            <Text style={styles.loginText}>密码登录</Text>
+          </TouchableOpacity>
+        )}
 
         {/* ==弹窗== */}
         <UserLoginDialog
@@ -172,8 +170,10 @@ const TopicPanel = () => {
             navigation.navigate('ListenCenter');
           }}
         />
-      </ImageBackground>
-    </View>
+      </View>
+
+      <LogoFlag />
+    </ImageBackground>
   );
 };
 
@@ -181,9 +181,7 @@ export default observer(TopicPanel);
 
 const useStyles = makeStyles(theme => ({
   container: {
-    position: 'relative',
     flex: 1,
-    backgroundColor: '#fff',
   },
 
   loginWrap: {
@@ -191,27 +189,32 @@ const useStyles = makeStyles(theme => ({
     bottom: 10,
     left: 10,
     height: 50,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.grey3,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 100,
   },
   loginText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#fff',
+    fontWeight: 'bold',
   },
-
-  header: {
-    padding: 25,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  logoutBtn: {
+    marginLeft: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 90,
+    height: 30,
+    backgroundColor: 'rgba(244, 253, 242, 0.23)',
+    borderRadius: 50,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderWidth: 1,
   },
-  hdButton: {
-    padding: 0,
-    width: 180,
-    height: 55,
-    borderRadius: 55,
+  logoutText: {
+    fontSize: 14,
+    color: '#fff',
   },
 
   topicWrap: {
@@ -220,23 +223,14 @@ const useStyles = makeStyles(theme => ({
     flex: 1,
     justifyContent: 'center',
   },
-  tagItemWrap: {
-    margin: 10,
-    elevation: 2,
-    borderRadius: 50,
-    backgroundColor: '#f6f6f7',
-  },
   tagItem: {
+    borderRadius: 50,
     paddingHorizontal: 25,
     paddingVertical: 8,
-    borderColor: theme.colors.primary,
-    borderWidth: 1,
     borderRadius: 50,
-    backgroundColor: '#fff',
-    opacity: 0.65,
+    backgroundColor: 'rgba(255,255,255,0.4)',
   },
   tagText: {
     fontWeight: 'bold',
-    color: theme.colors.primary,
   },
 }));

@@ -23,6 +23,7 @@ export const InputController = ({control, errors, rules, name, ...attrs}) => {
           containerStyle={styles.wrap}
           labelStyle={styles.label}
           inputContainerStyle={styles.input}
+          errorStyle={styles.errorStyle}
           errorMessage={errors[name]?.message}
           {...attrs}
         />
@@ -36,13 +37,18 @@ const useStyles = makeStyles(theme => ({
     paddingHorizontal: 0,
   },
   input: {
+    height: 50,
     borderBottomWidth: 0,
-    backgroundColor: '#ecf7ff',
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    paddingHorizontal: 25,
+    borderRadius: 50,
+  },
+  errorStyle: {
+    margin: 4,
+    padding: 0,
+    color: theme.colors.error,
   },
   label: {
     marginBottom: 5,
-    color: theme.colors.primary,
   },
 }));

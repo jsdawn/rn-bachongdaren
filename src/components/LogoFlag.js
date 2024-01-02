@@ -1,8 +1,8 @@
 import React from 'react';
 import {observer} from 'mobx-react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
-import {Image, makeStyles} from '@rneui/themed';
+import {Image, Text, makeStyles} from '@rneui/themed';
 
 import {appStore} from '@store/appStore';
 
@@ -12,7 +12,7 @@ const LogoFlag = ({showLogo}) => {
   return (
     <View style={styles.logoWrap}>
       <View style={styles.logoWrap_text}>
-        <Text style={styles.logoText}>设备编号：{appStore.androidId}</Text>
+        <Text style={styles.logoText}>设备编号：{appStore.uuid}</Text>
         <Text style={styles.logoText}>广州市格米中学</Text>
       </View>
 
@@ -45,13 +45,12 @@ const useStyles = makeStyles(theme => ({
   },
   logoText: {
     fontSize: 12,
-    color: theme.colors.grey2,
   },
   line: {
     marginHorizontal: 10,
     width: 1,
     height: 28,
-    backgroundColor: theme.colors.grey2,
+    backgroundColor: theme.colors.black,
     opacity: 0.4,
   },
   logo: {

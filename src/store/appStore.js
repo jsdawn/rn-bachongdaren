@@ -10,7 +10,8 @@ class AppStore {
   machineToken = ''; // 设备token
   userToken = ''; // 用户token
   sessionObj = null; // request请求体
-  androidId = ''; // 设备uuid
+  uuid = ''; // 安卓ID
+  wind = {}; // window info
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
@@ -43,8 +44,12 @@ class AppStore {
     this.sessionObj = val || null;
   }
 
-  setAndroidId(val) {
-    this.androidId = val || null;
+  setUuid(val) {
+    this.uuid = val || null;
+  }
+
+  setWind(val) {
+    this.wind = val || {};
   }
 
   clearCache() {
