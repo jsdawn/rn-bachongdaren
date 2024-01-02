@@ -4,7 +4,7 @@ import {createTheme} from '@rneui/themed';
 export const theme = createTheme({
   mode: 'light',
   lightColors: {
-    primary: '#304cff',
+    primary: '#3368EC',
     secondary: '#ca71eb',
     background: '#ffffff',
     white: '#ffffff',

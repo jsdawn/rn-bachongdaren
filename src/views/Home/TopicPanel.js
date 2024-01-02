@@ -125,7 +125,7 @@ const TopicPanel = () => {
   return (
     <View style={styles.container}>
       <ImageBackground
-        style={styles.bgImage}
+        style={{flex: 1}}
         source={require('@assets/image/topic_bg.jpg')}
         resizeMode="stretch">
         <View style={styles.topicWrap}>
@@ -185,46 +185,20 @@ const useStyles = makeStyles(theme => ({
     flex: 1,
     backgroundColor: '#fff',
   },
-  bgImage: {
-    flex: 1,
-  },
-
-  logoWrap: {
-    position: 'absolute',
-    bottom: 35,
-    right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoWrap_text: {
-    paddingRight: 20,
-    marginRight: 20,
-    alignItems: 'flex-end',
-    borderRightWidth: 1,
-    borderRightColor: theme.colors.grey2,
-    opacity: 0.4,
-  },
-  logoText: {
-    fontSize: 24,
-    color: theme.colors.grey2,
-  },
-  logo: {
-    width: 130,
-    height: 45,
-  },
 
   loginWrap: {
-    padding: 20,
     position: 'absolute',
-    bottom: 20,
+    bottom: 10,
     left: 10,
+    height: 50,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.grey3,
     borderRadius: 100,
   },
   loginText: {
-    fontSize: 24,
+    fontSize: 16,
     color: '#fff',
   },
 
