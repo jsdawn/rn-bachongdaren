@@ -8,8 +8,12 @@ import {
   BackHandler,
 } from 'react-native';
 
+import BgImgView from '@components/BgImgView';
+import ListenerItem from '@components/ListenerItem';
+import LoginUser from '@components/LoginUser';
+import MessageBox from '@components/MessageBox';
 import {useNavigation} from '@react-navigation/native';
-import {Button, Text, makeStyles} from '@rneui/themed';
+import {Button, Icon, Text, makeStyles} from '@rneui/themed';
 import TopicLinkDialog from '@views/Home/components/TopicLinkDialog';
 
 import {requestPermissions} from '@utils/permissions';
@@ -35,7 +39,7 @@ const ListenCenter = () => {
 
   const [linkVisible, setLinkVisible] = useState(false);
   const [isExclude, setIsExclude] = useState(false);
-  const [status, setStatus, statusRef] = useStateRef(StatusCode.DIALING);
+  const [status, setStatus, statusRef] = useStateRef(StatusCode.CALLING);
   // 通话状态
   const callState = useRef({});
   // 前一次通话记录
@@ -179,13 +183,21 @@ const ListenCenter = () => {
     }
   };
 
-  // 关闭
+  // 关闭重连
   const onClosedLink = isLogOut => {
     if (isLogOut) {
       navigation.goBack();
       return;
     }
     autoLogOut();
+  };
+
+  const handleFinish = () => {
+    MessageBox.show({
+      title: '系统提示',
+      subTitle: '确定结束倾诉吗？',
+      onConfirm(done) {},
+    });
   };
 
   // 退出登陆
@@ -205,7 +217,7 @@ const ListenCenter = () => {
     requestPermissions().then(() => {
       if (listenStore.listener?.calledNo) {
         // 拨打电话并开始监听 phoneState
-        AutoAnswerModule.callPhone(listenStore.listener.calledNo);
+        // AutoAnswerModule.callPhone(listenStore.listener.calledNo);
       }
     });
 
@@ -232,32 +244,43 @@ const ListenCenter = () => {
 
   const StatusCalling = observer(() => {
     return (
-      <View style={{flex: 1, paddingVertical: 30, paddingHorizontal: 40}}>
-        <View style={{flexDirection: 'row', alignItems: 'flex-end'}}>
-          <Text style={{fontSize: 38, paddingRight: 15, color: '#fff'}}>
-            {fmtDuration(duration)}
+      <View style={styles.callWrap}>
+        <View style={styles.callInfo}>
+          <Text h1 style={styles.callName}>
+            {listenStore.listener?.nickname}
           </Text>
-          <Text style={{paddingBottom: 10, color: '#fff'}}>
+          <Text style={styles.callDesc}>
             因为陌生，所以勇敢。因为距离，所以美丽。
           </Text>
         </View>
 
-        <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
-          <View style={{width: '40%'}}>
-            <Text style={{paddingBottom: 10, color: '#fff'}}>
-              已为你连线 {listenStore.listener?.teacherName}
+        <BgImgView
+          style={styles.panel}
+          source={require('@assets/image/call_panel.png')}
+          center
+          width={493}
+          height={392}>
+          <BgImgView
+            source={require('@assets/image/call_panel_name.png')}
+            center
+            width={320}
+            height={136}>
+            <Text style={styles.panelName} h1>
+              {listenStore.topic?.name}
             </Text>
-            <Text style={{paddingBottom: 10, color: '#fff'}}>
-              你的烦恼是 【{listenStore.topic?.name}】
-            </Text>
-            {status == StatusCode.HANGUP && (
-              <Text style={{paddingBottom: 10, color: '#fff'}}>通话已结束</Text>
-            )}
-          </View>
+          </BgImgView>
+          <Text style={styles.panelTime}>{fmtDuration(duration)}</Text>
+          <Button
+            buttonStyle={styles.panelBtn}
+            raised
+            disabled={!StatusCode.CALLING}
+            onPress={() => handleFinish()}>
+            结束倾诉
+          </Button>
 
           {status == StatusCode.HANGUP && (
             <View style={{width: '60%', alignItems: 'center'}}>
-              <View style={styles.panel}>
+              <View style={styles.panel2}>
                 <Text
                   style={{marginBottom: 20, fontSize: 17, fontWeight: 'bold'}}>
                   还有未说完的话...
@@ -266,7 +289,7 @@ const ListenCenter = () => {
                   buttonStyle={styles.panelBtn}
                   size="sm"
                   onPress={() => handleReLink()}>
-                  重新连线 {listenStore.listener?.teacherName}
+                  重新连线 {listenStore.listener?.nickname}
                 </Button>
                 <Button
                   buttonStyle={styles.panelBtn}
@@ -280,56 +303,56 @@ const ListenCenter = () => {
               </View>
             </View>
           )}
-        </View>
-
-        {status == StatusCode.CALLING && (
-          <View
-            style={{
-              paddingTop: 20,
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-            }}>
-            <Button
-              buttonStyle={styles.finishBtn}
-              onPress={() => toBeHangUp(true)}>
-              结束倾诉
-            </Button>
-          </View>
-        )}
+        </BgImgView>
       </View>
     );
   });
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        style={styles.bgImage}
-        source={require('@assets/image/device_bg.png')}
-        resizeMode="stretch">
+    <ImageBackground
+      style={{flex: 1}}
+      source={require('@assets/image/topic_bg.jpg')}
+      resizeMode="stretch">
+      <View style={styles.container}>
         {status == StatusCode.DIALING && (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Text style={{fontSize: 25, color: '#fff'}}>
-              即将为你接通{listenStore.listener?.teacherName}，请拿起听筒……
-            </Text>
+          <View style={styles.dialWrap}>
+            <ListenerItem
+              size="lg"
+              showStatus={false}
+              item={listenStore.listener}
+            />
+
+            <View style={styles.dialContent}>
+              <Icon
+                iconStyle={styles.dialIcon}
+                name="phone-in-talk"
+                type="materialIcons"
+                raised
+              />
+              <Text style={styles.dialText} h2>
+                即将为你接通{listenStore.listener?.nickname}，请拿起听筒...
+              </Text>
+            </View>
           </View>
         )}
 
         {(status == StatusCode.CALLING || status == StatusCode.HANGUP) && (
           <StatusCalling />
         )}
-      </ImageBackground>
 
-      <TopicLinkDialog
-        visible={linkVisible}
-        setVisible={setLinkVisible}
-        linkTopic={listenStore.topic}
-        linkListener={listenStore.listener}
-        isExclude={isExclude}
-        onSuccess={onSuccessLink}
-        onClosed={onClosedLink}
-      />
-    </View>
+        <TopicLinkDialog
+          visible={linkVisible}
+          setVisible={setLinkVisible}
+          linkTopic={listenStore.topic}
+          linkListener={listenStore.listener}
+          isExclude={isExclude}
+          onSuccess={onSuccessLink}
+          onClosed={onClosedLink}
+        />
+
+        <LoginUser showLogout={false} />
+      </View>
+    </ImageBackground>
   );
 };
 
@@ -338,28 +361,54 @@ export default observer(ListenCenter);
 const useStyles = makeStyles(theme => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.primary,
-  },
-  bgImage: {
-    flex: 1,
-  },
-  panel: {
-    padding: 20,
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: 12,
-  },
-  panelBtn: {
-    width: 200,
-    marginBottom: 15,
-    borderRadius: 8,
   },
 
-  finishBtn: {
-    width: 140,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+  dialWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dialContent: {
+    marginLeft: 25,
+    alignItems: 'flex-start',
+  },
+  dialIcon: {},
+  dialText: {
+    marginTop: 25,
+  },
+
+  callWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  callInfo: {
+    marginRight: 35,
+    width: 290,
+  },
+  callName: {
+    marginTop: 20,
+    fontSize: 24,
+  },
+  callDesc: {
+    marginTop: 55,
+    fontSize: 18,
+  },
+
+  panel: {},
+  panelName: {
+    fontSize: 26,
+  },
+  panelTime: {
+    marginBottom: 10,
+    fontSize: 45,
+    fontWeight: 'bold',
+    letterSpacing: 1.1,
+  },
+  panelBtn: {
+    width: 180,
+    height: 50,
   },
 }));

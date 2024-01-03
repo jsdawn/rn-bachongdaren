@@ -3,9 +3,9 @@ import {observer} from 'mobx-react';
 import {TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
+import ListenerItem from '@components/ListenerItem';
 import {Dialog, Text, makeStyles, Button, Icon} from '@rneui/themed';
 
-import {sleep} from '@utils/index';
 import useStateRef from '@utils/useStateRef';
 import {
   createListen,
@@ -62,7 +62,6 @@ const TopicLinkDialog = ({
     listHistory()
       .then(res => {
         setStatus(StatusCode.HISTORY);
-        console.log(res);
         if (!res.data || res.data.length == 0) {
           // 无历史倾听师
           fetchQueueInfo();
@@ -206,7 +205,11 @@ const TopicLinkDialog = ({
         《{linkTopic?.name}》
       </Text>
       <View style={styles.subTitle}>
-        <Icon containerStyle={styles.icon} name="phone" type="antdesign" />
+        <Icon
+          iconStyle={styles.icon}
+          name="phone-in-talk"
+          type="materialIcons"
+        />
         <Text h3>
           目前排队中，第
           {listenStore.task?.ranking == undefined
@@ -231,12 +234,11 @@ const TopicLinkDialog = ({
       </Text>
       <View style={styles.historyWrap}>
         {history.map(item => (
-          <TouchableOpacity
-            style={styles.historyItem}
+          <ListenerItem
+            item={item}
             key={item.teacherId}
-            onPress={() => fetchQueueInfo(item.teacherId)}>
-            <Text style={styles.historyText}>{item.nickname}</Text>
-          </TouchableOpacity>
+            onPress={() => fetchQueueInfo(item.teacherId)}
+          />
         ))}
       </View>
       <View style={styles.actions}>
@@ -253,10 +255,17 @@ const TopicLinkDialog = ({
   // 连线中
   const StatusLinking = () => (
     <>
-      <Dialog.Title
-        title="正在连线倾听者..."
-        titleStyle={{textAlign: 'center'}}
-      />
+      <Text h2 style={styles.title}>
+        《{linkTopic?.name}》
+      </Text>
+      <View style={styles.subTitle}>
+        <Icon
+          iconStyle={styles.icon}
+          name="phone-in-talk"
+          type="materialIcons"
+        />
+        <Text h3>正在连线倾听者...</Text>
+      </View>
       <View style={styles.actions}>
         <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
           取消连线
@@ -296,9 +305,15 @@ const TopicLinkDialog = ({
         <Text h2 style={styles.title}>
           《{linkTopic?.name}》
         </Text>
-        <Text h3 style={styles.subTitle}>
-          已取消连线，{time}秒后为你自动退出登陆...
-        </Text>
+        <View style={styles.subTitle}>
+          <Icon
+            iconStyle={styles.icon}
+            name="closecircle"
+            type="antdesign"
+            color="#FF7B7B"
+          />
+          <Text h3>已取消连线，{time}秒后为你自动退出登陆...</Text>
+        </View>
         <View style={styles.actions}>
           <Button buttonStyle={styles.btn} raised onPress={() => closeDialog()}>
             先不退出
@@ -334,7 +349,7 @@ const useStyles = makeStyles(theme => ({
   },
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 30,
     paddingBottom: 35,
     borderRadius: 20,
     alignItems: 'center',
@@ -345,10 +360,11 @@ const useStyles = makeStyles(theme => ({
   },
   subTitle: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
   },
   icon: {
-    marginRight:2,
+    marginRight: 5,
   },
   desc: {
     marginBottom: 10,
@@ -373,17 +389,5 @@ const useStyles = makeStyles(theme => ({
     width: 150 * 2 + 8 * 4,
     flexDirection: 'row',
     flexWrap: 'wrap',
-  },
-  historyItem: {
-    margin: 8,
-    paddingVertical: 5,
-    width: 150,
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.4)',
-    borderColor: '#fff',
-    borderWidth: 1,
-    borderRadius: 12,
   },
 }));

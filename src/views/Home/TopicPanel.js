@@ -9,25 +9,21 @@ import {
 import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
-import UserLoginDialog from './components/UserLoginDialog';
+import LoginUser from '@components/LoginUser';
 import LogoFlag from '@components/LogoFlag';
 import MessageBox from '@components/MessageBox';
-import MsgToast from '@components/MsgToast';
 import {useNavigation} from '@react-navigation/native';
-import {Button, makeStyles, Text, useTheme} from '@rneui/themed';
+import {makeStyles, Text} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
-import {listTopic, userLogout} from '@api/index';
-import {appStore} from '@store/appStore';
+import {listTopic} from '@api/index';
 import {userStore} from '@store/userStore';
 
 const TopicPanel = () => {
   const styles = useStyles();
-  const {theme} = useTheme();
   const navigation = useNavigation();
 
   const [isPermisOK, setIsPermisOK] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [linkVisible, setLinkVisible] = useState(false);
   const [pageNum, setPageNum] = useState(1);
   const [pageSize] = useState(10);
@@ -36,22 +32,6 @@ const TopicPanel = () => {
 
   const changeTopics = () => {
     getList();
-  };
-
-  const logout = () => {
-    MessageBox.show({
-      title: '系统提示',
-      message: '确定退出登陆吗？',
-      onConfirm(done) {
-        userLogout().catch(() => {}); // logout api
-        // keep token
-        setTimeout(() => {
-          appStore.setUserToken('');
-          userStore.clearUser();
-          done();
-        }, 0);
-      },
-    });
   };
 
   const clickItem = item => {
@@ -131,36 +111,7 @@ const TopicPanel = () => {
           />
         </View>
 
-        {userStore.isUsered ? (
-          <View style={styles.loginWrap}>
-            <Text style={styles.loginText}>
-              欢迎您，{userStore.user.nickName}
-            </Text>
-            <TouchableOpacity style={styles.logoutBtn} onPress={() => logout()}>
-              <Text style={styles.logoutText}>退出登录</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.loginWrap}
-            onPress={() => {
-              setVisible(true);
-            }}>
-            <Text style={styles.loginText}>密码登录</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* ==弹窗== */}
-        <UserLoginDialog
-          visible={visible}
-          setVisible={setVisible}
-          onSuccess={data => {
-            MsgToast.show({
-              text1: '登陆成功',
-              text2: `接下来请根据自己心情，在屏幕上选择你想倾听的话题！`,
-            });
-          }}
-        />
+        <LoginUser />
 
         <TopicLinkDialog
           visible={linkVisible}
@@ -182,39 +133,6 @@ export default observer(TopicPanel);
 const useStyles = makeStyles(theme => ({
   container: {
     flex: 1,
-  },
-
-  loginWrap: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    height: 50,
-    paddingHorizontal: 25,
-    paddingVertical: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 100,
-  },
-  loginText: {
-    fontSize: 15,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  logoutBtn: {
-    marginLeft: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 90,
-    height: 30,
-    backgroundColor: 'rgba(244, 253, 242, 0.23)',
-    borderRadius: 50,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    borderWidth: 1,
-  },
-  logoutText: {
-    fontSize: 14,
-    color: '#fff',
   },
 
   topicWrap: {

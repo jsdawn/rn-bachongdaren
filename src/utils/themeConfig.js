@@ -19,29 +19,33 @@ export const theme = createTheme({
     searchBg: '#303337',
     success: '#52c41a',
     warning: '#faad14',
-    error: '#ff190c',
+    error: '#FF7B7B',
     disabled: 'hsl(208, 8%, 90%)',
   },
   components: {
     Button: {
-      radius: 100,
+      radius: 25,
+      buttonStyle: {borderRadius: 25},
     },
     Text: {
       h1Style: {
         fontSize: 24,
-        color: '#687290',
+        color: '#4F5977',
       },
       h2Style: {
         fontSize: 21,
-        color: '#687290',
+        color: '#4F5977',
       },
       h3Style: {
         fontSize: 18,
-        color: '#687290',
+        color: '#4F5977',
       },
       h4Style: {
         fontSize: 16,
       },
+    },
+    Icon: {
+      color: '#4F5977',
     },
   },
 });
