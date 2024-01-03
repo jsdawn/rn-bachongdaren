@@ -1,13 +1,18 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {observer} from 'mobx-react';
-import {View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import {Dialog, Text, makeStyles, Button} from '@rneui/themed';
+import {Dialog, Text, makeStyles, Button, Icon} from '@rneui/themed';
 
 import {sleep} from '@utils/index';
 import useStateRef from '@utils/useStateRef';
-import {createListen, getListenStatus, updateDialogStatus} from '@api/index';
+import {
+  createListen,
+  getListenStatus,
+  updateDialogStatus,
+  listHistory,
+} from '@api/index';
 import {listenStore} from '@store/listenStore';
 import {userStore} from '@store/userStore';
 
@@ -54,16 +59,16 @@ const TopicLinkDialog = ({
   };
 
   const fetchHistory = () => {
-    sleep(1000)
+    listHistory()
       .then(res => {
-        // setStatus(StatusCode.HISTORY);
-        // setHistory([
-        //   {id: 1, name: '麦当劳叔叔', phone: '13533403735'},
-        //   {id: 2, name: '肯德基阿姨', phone: '13533403735'},
-        //   {id: 3, name: '必胜客小哥', phone: '13533403735'},
-        // ]);
-        // 无历史倾听师
-        fetchQueueInfo();
+        setStatus(StatusCode.HISTORY);
+        console.log(res);
+        if (!res.data || res.data.length == 0) {
+          // 无历史倾听师
+          fetchQueueInfo();
+          return;
+        }
+        setHistory(res.data || []);
       })
       .catch(() => {
         fetchQueueInfo();
@@ -71,15 +76,18 @@ const TopicLinkDialog = ({
   };
 
   // 创建排队 task
-  const fetchQueueInfo = () => {
+  const fetchQueueInfo = _teacherId => {
+    // 指定倾听师id
+    _teacherId = _teacherId || linkListener?.teacherId;
+
     const data = {
       topic: linkTopic.name,
     };
-    if (!isExclude && linkListener?.teacherId) {
-      data.teacherId = linkListener?.teacherId;
+    if (!isExclude && _teacherId) {
+      data.teacherId = _teacherId;
     }
-    if (isExclude && linkListener?.teacherId) {
-      data.params = {excludeTeacherIds: [linkListener.teacherId]};
+    if (isExclude && _teacherId) {
+      data.params = {excludeTeacherIds: [_teacherId]};
     }
     setStatus(StatusCode.QUEUE);
     createListen(data).then(res => {
@@ -165,7 +173,7 @@ const TopicLinkDialog = ({
     }
     setHistory([]);
     setStatus(StatusCode.QUEUE);
-    return;
+
     if (!isExclude && linkListener?.teacherId) {
       // 指定倾听师
       fetchQueueInfo();
@@ -197,16 +205,16 @@ const TopicLinkDialog = ({
       <Text h2 style={styles.title}>
         《{linkTopic?.name}》
       </Text>
-      <Text h3 style={styles.subTitle}>
-        倾诉排队中...
-      </Text>
-      <Text style={styles.desc}>
-        排在您前面的还有
-        {listenStore.task?.ranking == undefined
-          ? '--'
-          : listenStore.task.ranking}
-        人
-      </Text>
+      <View style={styles.subTitle}>
+        <Icon containerStyle={styles.icon} name="phone" type="antdesign" />
+        <Text h3>
+          目前排队中，第
+          {listenStore.task?.ranking == undefined
+            ? '--'
+            : listenStore.task.ranking}
+          位...
+        </Text>
+      </View>
       <View style={styles.actions}>
         <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
           我不等了
@@ -218,22 +226,24 @@ const TopicLinkDialog = ({
   // 倾听者历史
   const StatusHistory = () => (
     <>
-      <Dialog.Title title="这是最近为您倾听的老师，可点击连线他们：" />
-      <View style={{alignItems: 'center'}}>
+      <Text h3 style={styles.subTitle}>
+        这是最近为您倾听的老师，可点击连线他们
+      </Text>
+      <View style={styles.historyWrap}>
         {history.map(item => (
-          <Text
-            key={item.id}
+          <TouchableOpacity
             style={styles.historyItem}
-            onPress={() => fetchLinkAndCall(item)}>
-            {item.name}
-          </Text>
+            key={item.teacherId}
+            onPress={() => fetchQueueInfo(item.teacherId)}>
+            <Text style={styles.historyText}>{item.nickname}</Text>
+          </TouchableOpacity>
         ))}
       </View>
       <View style={styles.actions}>
         <Button
           buttonStyle={styles.btn}
           raised
-          onPress={() => fetchLinkAndCall()}>
+          onPress={() => fetchQueueInfo()}>
           我要连线新老师
         </Button>
       </View>
@@ -261,7 +271,7 @@ const TopicLinkDialog = ({
     const [time, setTime] = useState(10);
 
     useEffect(() => {
-      runTime();
+      // runTime();
       return () => {
         if (timerOut.current) clearInterval(timerOut.current);
       };
@@ -283,8 +293,12 @@ const TopicLinkDialog = ({
 
     return (
       <>
-        <Dialog.Title title="已取消连线" titleStyle={{textAlign: 'center'}} />
-        <Text style={{textAlign: 'center'}}>{time}秒后为你自动退出登陆</Text>
+        <Text h2 style={styles.title}>
+          《{linkTopic?.name}》
+        </Text>
+        <Text h3 style={styles.subTitle}>
+          已取消连线，{time}秒后为你自动退出登陆...
+        </Text>
         <View style={styles.actions}>
           <Button buttonStyle={styles.btn} raised onPress={() => closeDialog()}>
             先不退出
@@ -319,20 +333,25 @@ const useStyles = makeStyles(theme => ({
     borderRadius: 20,
   },
   container: {
-    paddingHorizontal: 70,
-    paddingVertical: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 35,
     borderRadius: 20,
     alignItems: 'center',
   },
 
   title: {
-    marginBottom: 15,
+    marginBottom: 35,
   },
   subTitle: {
+    flexDirection: 'row',
     marginBottom: 10,
   },
+  icon: {
+    marginRight:2,
+  },
   desc: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
   actions: {
@@ -344,14 +363,27 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'center',
   },
   btn: {
-    paddingHorizontal: 15,
-    width: 160,
+    paddingHorizontal: 35,
+    minWidth: 160,
     height: 50,
     fontSize: 15,
   },
 
+  historyWrap: {
+    width: 150 * 2 + 8 * 4,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   historyItem: {
+    margin: 8,
     paddingVertical: 5,
-    fontSize: 15,
+    width: 150,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderColor: '#fff',
+    borderWidth: 1,
+    borderRadius: 12,
   },
 }));

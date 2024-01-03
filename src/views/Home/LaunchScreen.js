@@ -41,9 +41,12 @@ const LaunchScreen = () => {
     const _window = Dimensions.get('window');
     appStore.setWind(_window);
 
+    console.log(__DEV__);
+
     setLoading(true);
 
-    handleLaunch();
+    // 自动开始
+    // handleLaunch();
   };
 
   useEffect(() => {
@@ -61,6 +64,7 @@ const LaunchScreen = () => {
         <Text>androidId: {appStore.uuid}</Text>
         <Text>machineToken: {appStore.machineToken}</Text>
         <Text>userToken: {appStore.userToken}</Text>
+        <Text>__DEV__: {__DEV__ ? 'true' : 'false'}</Text>
         <View style={{height: 20}}></View>
         <Button onPress={handleCache}>清除缓存</Button>
 

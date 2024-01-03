@@ -37,6 +37,7 @@ export const theme = createTheme({
       },
       h3Style: {
         fontSize: 18,
+        color: '#687290',
       },
       h4Style: {
         fontSize: 16,

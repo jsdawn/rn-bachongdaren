@@ -90,3 +90,12 @@ export function updateDialogStatus(data) {
     data: data,
   });
 }
+
+// 获取倾听师记录
+export function listHistory(query) {
+  return request({
+    url: '/dialog/history',
+    method: 'get',
+    params: query,
+  });
+}
