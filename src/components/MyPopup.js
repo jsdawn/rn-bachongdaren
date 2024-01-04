@@ -2,53 +2,121 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import {Button, Dialog, Icon, Text, makeStyles} from '@rneui/themed';
+import {Button, Dialog, Icon, Image, Text, makeStyles} from '@rneui/themed';
 
-const MyPopup = ({visible, setVisible, children, ...options}) => {
+/**
+ * 自定义弹出层
+ * @param {*} param0
+ * @returns
+ */
+const MyPopup = ({
+  isVisible,
+  overlayStyle,
+  containerStyle,
+  children,
+  ...props
+}) => {
   const styles = useStyles();
 
   return (
     <Dialog
-      isVisible={visible}
+      isVisible={isVisible}
       onBackdropPress={() => {}}
-      overlayStyle={styles.wrap}>
-      <LinearGradient style={styles.container} colors={['#E7EEFA', '#D1E1FF']}>
-        <Icon
-          containerStyle={styles.closeIcon}
-          name="close"
-          type="antdesign"
-          onPress={() => setVisible(false)}
-        />
-
-        {options.title && (
-          <Text h2 style={styles.title}>
-            {options.title}
-          </Text>
-        )}
-
-        {options.message || options.iconProps ? (
-          <View style={styles.message}>
-            {options.iconProps && <Icon {...options.iconProps} />}
-            <Text h3>{options.message}</Text>
-          </View>
-        ) : null}
-
-        {options.desc && <Text style={styles.desc}>{options.desc}</Text>}
-
+      overlayStyle={{...styles.wrap, ...overlayStyle}}
+      {...props}
+    >
+      <LinearGradient
+        style={{...styles.container, ...containerStyle}}
+        colors={['#E7EEFA', '#D1E1FF']}
+      >
         {children}
       </LinearGradient>
     </Dialog>
   );
 };
 
-MyPopup.Actions = ({children}) => {
-  const styles = useStyles();
-  return <View style={styles.actions}>{children}</View>;
+MyPopup.CloseIcon = ({style, onPress, ...props}) => {
+  return (
+    <Icon
+      containerStyle={{
+        position: 'absolute',
+        right: 15,
+        top: 15,
+        zIndex: 10,
+        opacity: 0.4,
+        ...style,
+      }}
+      name="close"
+      type="antdesign"
+      onPress={onPress}
+      {...props}
+    />
+  );
+};
+
+MyPopup.FaceImage = ({source}) => {
+  return (
+    <>
+      <View
+        style={{
+          position: 'absolute',
+          top: -56,
+          left: 0,
+          right: 0,
+          flexDirection: 'row',
+          justifyContent: 'center',
+        }}
+      >
+        <Image
+          style={{width: 109, height: 113}}
+          source={source || require('@assets/image/icon_sun.png')}
+        />
+      </View>
+      {/* 下边距 15 */}
+      <View style={{height: 30 + 15}}></View>
+    </>
+  );
+};
+
+MyPopup.Actions = ({style, children}) => {
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        bottom: -25,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        ...style,
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+MyPopup.Button = ({buttonStyle, children, ...props}) => {
+  return (
+    <Button
+      raised
+      buttonStyle={{
+        paddingHorizontal: 35,
+        minWidth: 140,
+        height: 50,
+        fontSize: 15,
+        ...buttonStyle,
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
 };
 
 export default MyPopup;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   wrap: {
     position: 'relative',
     padding: 0,
@@ -61,39 +129,5 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: 35,
     borderRadius: 20,
     alignItems: 'center',
-  },
-  closeIcon: {
-    position: 'absolute',
-    right: 15,
-    top: 15,
-    zIndex: 10,
-    opacity: 0.4,
-  },
-
-  title: {
-    marginBottom: 20,
-  },
-  message: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  desc: {
-    marginBottom: 20,
-  },
-
-  actions: {
-    position: 'absolute',
-    bottom: -25,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  btn: {
-    paddingHorizontal: 35,
-    minWidth: 140,
-    height: 50,
-    fontSize: 15,
   },
 }));

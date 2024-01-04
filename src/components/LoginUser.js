@@ -20,7 +20,7 @@ const LoginUser = ({showLogout = true}) => {
   const logout = () => {
     MessageBox.show({
       title: '',
-      message: '确定退出登陆吗？',
+      message: '确定退出登录吗？',
       onConfirm(done) {
         userLogout().catch(() => {}); // logout api
         // keep token
@@ -67,7 +67,7 @@ const LoginUser = ({showLogout = true}) => {
           setTimeout(() => {
             MessageBox.show({
               title: '',
-              message: '登陆成功',
+              message: '登录成功',
               desc: '接下来请根据自己心情，在屏幕上选择你想倾听的话题！',
               showCancelButton: false,
               confirmButtonText: '好的',

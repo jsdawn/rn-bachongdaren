@@ -38,7 +38,7 @@ const TopicPanel = () => {
     if (!userStore.isUsered) {
       MessageBox.show({
         title: '',
-        message: '请先点击左下角按钮登陆账号',
+        message: '请先点击左下角按钮登录账号',
         showCancelButton: false,
         confirmButtonText: '好的',
       });

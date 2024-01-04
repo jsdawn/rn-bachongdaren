@@ -19,20 +19,22 @@ const BgImgView = ({
       resizeMode="stretch"
       style={{
         width,
-        aspectRatio: width ? width / height : undefined,
+        aspectRatio: width && height ? width / height : undefined,
         ...centerStyle,
         ...style,
-      }}>
+      }}
+    >
       {children}
     </ImageBackground>
   ) : (
     <View
       style={{
         width,
-        aspectRatio: width ? width / height : undefined,
+        aspectRatio: width && height ? width / height : undefined,
         ...centerStyle,
         ...style,
-      }}>
+      }}
+    >
       {children}
     </View>
   );

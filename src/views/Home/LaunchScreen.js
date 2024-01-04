@@ -32,7 +32,7 @@ const LaunchScreen = () => {
       return;
     }
     authDevice({uuid: appStore.uuid, timestamp: new Date().getTime()}).then(
-      res => {
+      (res) => {
         if (!res || !res.data) return;
         if (res.data.machine?.status == 1) {
           navigation.navigate('TopicPanel');
@@ -47,8 +47,6 @@ const LaunchScreen = () => {
 
     const _window = Dimensions.get('window');
     appStore.setWind(_window);
-
-    console.log(__DEV__);
 
     setLoading(false);
 
@@ -65,19 +63,27 @@ const LaunchScreen = () => {
     <ImageBackground
       style={{flex: 1}}
       source={require('@assets/image/start_bg.png')}
-      resizeMode="cover">
+      resizeMode="cover"
+    >
       <View style={styles.container}>
-        {/* <Text>LOADING...</Text>
-        <Text>androidId: {appStore.uuid}</Text>
-        <Text>machineToken: {appStore.machineToken}</Text>
-        <Text>userToken: {appStore.userToken}</Text>
-        <Text>__DEV__: {__DEV__ ? 'true' : 'false'}</Text>
-        <View style={{height: 20}}></View>
-        <Button onPress={handleCache}>清除缓存</Button> */}
+        {/* debug info */}
+        {__DEV__ ? (
+          <View style={styles.debugInfo}>
+            <Text>androidId: {appStore.uuid}</Text>
+            <Text>machineToken: {appStore.machineToken}</Text>
+            <Text>userToken: {appStore.userToken}</Text>
+            <Text>__DEV__: {__DEV__ ? 'true' : 'false'}</Text>
+            <View style={{height: 20}}></View>
+            <Button buttonStyle={{width: 150}} onPress={handleCache}>
+              清除缓存
+            </Button>
+          </View>
+        ) : null}
 
         <Image
           style={styles.logo}
-          source={require('@assets/image/logo_lg.png')}></Image>
+          source={require('@assets/image/logo_lg.png')}
+        ></Image>
 
         <Text style={styles.subText}>
           小亭子等你很久了，点击屏幕开始你的倾听之旅吧
@@ -86,12 +92,14 @@ const LaunchScreen = () => {
         <TouchableOpacity
           style={{opacity: loading ? 0.6 : 1}}
           disabled={loading}
-          onPress={handleLaunch}>
+          onPress={handleLaunch}
+        >
           <BgImgView
             source={require('@assets/image/start_btn.png')}
             width={240}
             height={79}
-            center>
+            center
+          >
             <Text style={styles.startBtnText}>开始你的倾听之旅</Text>
           </BgImgView>
         </TouchableOpacity>
@@ -111,6 +119,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  debugInfo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    padding: 10,
+  },
+
   logo: {
     width: 173,
     height: 60,
@@ -122,7 +138,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  
   startBtnText: {
     fontSize: 18,
     color: '#fff',

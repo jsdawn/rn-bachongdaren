@@ -7,6 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {InputController} from '@components/FormController';
 import MsgToast from '@components/MsgToast';
 import {Dialog, makeStyles, Button, Icon, Text, Divider} from '@rneui/themed';
+import MyPopup from './MyPopup';
 
 import {getUserInfo, userLogin} from '@api/index';
 import {appStore} from '@store/appStore';
@@ -58,68 +59,65 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   };
 
   return (
-    <Dialog
-      isVisible={visible}
-      onBackdropPress={() => {}}
-      overlayStyle={styles.wrap}>
-      <LinearGradient style={styles.container} colors={['#E7EEFA', '#D1E1FF']}>
-        <Icon
-          containerStyle={styles.icon}
-          name="close"
-          type="antdesign"
-          onPress={() => setVisible(false)}
-        />
+    <MyPopup isVisible={visible}>
+      <Icon
+        containerStyle={styles.icon}
+        name="close"
+        type="antdesign"
+        onPress={() => setVisible(false)}
+      />
 
-        <Text h2 style={styles.title}>
-          密码登录
-        </Text>
+      <MyPopup.CloseIcon onPress={() => setVisible(false)} />
 
-        <InputController
-          control={control}
-          errors={errors}
-          rules={{
-            required: '请输入您的账号',
-          }}
-          name="username"
-          placeholder="请输入账号"
-        />
+      <Text h2 style={styles.title}>
+        密码登录
+      </Text>
 
-        <InputController
-          control={control}
-          errors={errors}
-          rules={{required: '请输入您的密码'}}
-          name="password"
-          placeholder="请输入密码"
-        />
+      <InputController
+        control={control}
+        errors={errors}
+        rules={{
+          required: '请输入您的账号',
+        }}
+        name="username"
+        placeholder="请输入账号"
+      />
 
-        <View style={styles.actions}>
-          <Button
-            buttonStyle={styles.btn}
-            size="lg"
-            radius={25}
-            raised
-            loading={isSubmitting}
-            onPress={handleSubmit(onSubmit, onError)}>
-            登陆
-          </Button>
-        </View>
+      <InputController
+        control={control}
+        errors={errors}
+        rules={{required: '请输入您的密码'}}
+        name="password"
+        placeholder="请输入密码"
+      />
 
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginVertical: 7,
-          }}>
-          <View style={styles.divider} />
-          <Text style={{marginHorizontal: 16, fontWeight: 'bold'}}>或</Text>
-          <View style={styles.divider} />
-        </View>
+      <View style={styles.actions}>
+        <Button
+          buttonStyle={styles.btn}
+          size="lg"
+          radius={25}
+          raised
+          loading={isSubmitting}
+          onPress={handleSubmit(onSubmit, onError)}>
+          登录
+        </Button>
+      </View>
 
-        <Text style={{fontSize: 13}}>屏幕右下角可使用IC卡刷卡登录</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginVertical: 7,
+        }}>
+        <View style={styles.divider} />
+        <Text style={{marginHorizontal: 16, fontWeight: 'bold'}}>或</Text>
+        <View style={styles.divider} />
+      </View>
 
-        {visible ? <MsgToast /> : null}
-      </LinearGradient>
-    </Dialog>
+      <Text style={{fontSize: 13}}>屏幕右下角可使用IC卡刷卡登录</Text>
+
+      {visible ? <MsgToast /> : null}
+    </MyPopup>
   );
 });
 

@@ -4,7 +4,14 @@ import {TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import ListenerItem from '@components/ListenerItem';
+import MyPopup from '@components/MyPopup';
 import {Dialog, Text, makeStyles, Button, Icon} from '@rneui/themed';
+import {
+  StatusCancel,
+  StatusHistory,
+  StatusLinking,
+  StatusQueue,
+} from './TopicLinkStatus';
 
 import useStateRef from '@utils/useStateRef';
 import {
@@ -49,7 +56,7 @@ const TopicLinkDialog = ({
   // 历史倾听师
   const [history, setHistory] = useState([]);
 
-  const closeDialog = isLogout => {
+  const closeDialog = (isLogout) => {
     setStatus(StatusCode.QUEUE);
     if (isLogout) {
       userStore.clearUser();
@@ -60,7 +67,7 @@ const TopicLinkDialog = ({
 
   const fetchHistory = () => {
     listHistory()
-      .then(res => {
+      .then((res) => {
         setStatus(StatusCode.HISTORY);
         if (!res.data || res.data.length == 0) {
           // 无历史倾听师
@@ -75,7 +82,7 @@ const TopicLinkDialog = ({
   };
 
   // 创建排队 task
-  const fetchQueueInfo = _teacherId => {
+  const fetchQueueInfo = (_teacherId) => {
     // 指定倾听师id
     _teacherId = _teacherId || linkListener?.teacherId;
 
@@ -89,7 +96,7 @@ const TopicLinkDialog = ({
       data.params = {excludeTeacherIds: [_teacherId]};
     }
     setStatus(StatusCode.QUEUE);
-    createListen(data).then(res => {
+    createListen(data).then((res) => {
       if (statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
       }
@@ -109,7 +116,7 @@ const TopicLinkDialog = ({
     if (!waitKeyRef.current) return;
     getListenStatus({
       waitKey: waitKeyRef.current,
-    }).then(res => {
+    }).then((res) => {
       if (!visible || statusRef.current != StatusCode.QUEUE) {
         return; // 状态已改变
       }
@@ -132,7 +139,7 @@ const TopicLinkDialog = ({
   };
 
   // 准备就绪，缓存信息
-  const fetchLinkAndCall = _listener => {
+  const fetchLinkAndCall = (_listener) => {
     setStatus(StatusCode.LINKING);
     // 缓存倾听信息
     listenStore.setTopic(linkTopic);
@@ -173,6 +180,8 @@ const TopicLinkDialog = ({
     setHistory([]);
     setStatus(StatusCode.QUEUE);
 
+    // return;
+
     if (!isExclude && linkListener?.teacherId) {
       // 指定倾听师
       fetchQueueInfo();
@@ -198,163 +207,44 @@ const TopicLinkDialog = ({
 
   // ===Status Components===
 
-  // 排队中
-  const StatusQueue = observer(() => (
-    <>
-      <Text h2 style={styles.title}>
-        《{linkTopic?.name}》
-      </Text>
-      <View style={styles.subTitle}>
-        <Icon
-          iconStyle={styles.icon}
-          name="phone-in-talk"
-          type="materialIcons"
-        />
-        <Text h3>
-          目前排队中，第
-          {listenStore.task?.ranking == undefined
-            ? '--'
-            : listenStore.task.ranking}
-          位...
-        </Text>
-      </View>
-      <View style={styles.actions}>
-        <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
-          我不等了
-        </Button>
-      </View>
-    </>
-  ));
-
-  // 倾听者历史
-  const StatusHistory = () => (
-    <>
-      <Text h3 style={styles.subTitle}>
-        这是最近为您倾听的老师，可点击连线他们
-      </Text>
-      <View style={styles.historyWrap}>
-        {history.map(item => (
-          <ListenerItem
-            item={item}
-            key={item.teacherId}
-            onPress={() => fetchQueueInfo(item.teacherId)}
-          />
-        ))}
-      </View>
-      <View style={styles.actions}>
-        <Button
-          buttonStyle={styles.btn}
-          raised
-          onPress={() => fetchQueueInfo()}>
-          我要连线新老师
-        </Button>
-      </View>
-    </>
-  );
-
-  // 连线中
-  const StatusLinking = () => (
-    <>
-      <Text h2 style={styles.title}>
-        《{linkTopic?.name}》
-      </Text>
-      <View style={styles.subTitle}>
-        <Icon
-          iconStyle={styles.icon}
-          name="phone-in-talk"
-          type="materialIcons"
-        />
-        <Text h3>正在连线倾听者...</Text>
-      </View>
-      <View style={styles.actions}>
-        <Button buttonStyle={styles.btn} raised onPress={clickToCancel}>
-          取消连线
-        </Button>
-      </View>
-    </>
-  );
-
-  // 取消连线
-  const StatusCancel = () => {
-    const timerOut = useRef(null);
-    const [time, setTime] = useState(10);
-
-    useEffect(() => {
-      // runTime();
-      return () => {
-        if (timerOut.current) clearInterval(timerOut.current);
-      };
-    }, []);
-
-    useEffect(() => {
-      // 退出登陆
-      if (time == 0) {
-        if (timerOut.current) clearInterval(timerOut.current);
-        closeDialog(true);
-      }
-    }, [time]);
-
-    const runTime = () => {
-      timerOut.current = setInterval(() => {
-        setTime(pre => pre - 1);
-      }, 1000);
-    };
-
-    return (
-      <>
-        <Text h2 style={styles.title}>
-          《{linkTopic?.name}》
-        </Text>
-        <View style={styles.subTitle}>
-          <Icon
-            iconStyle={styles.icon}
-            name="closecircle"
-            type="antdesign"
-            color="#FF7B7B"
-          />
-          <Text h3>已取消连线，{time}秒后为你自动退出登陆...</Text>
-        </View>
-        <View style={styles.actions}>
-          <Button buttonStyle={styles.btn} raised onPress={() => closeDialog()}>
-            先不退出
-          </Button>
-        </View>
-      </>
-    );
-  };
-
   return (
-    <Dialog
-      isVisible={visible}
-      onBackdropPress={() => {}}
-      overlayStyle={styles.wrap}>
-      <LinearGradient style={styles.container} colors={['#E7EEFA', '#D1E1FF']}>
-        {status == StatusCode.QUEUE && <StatusQueue />}
-        {status == StatusCode.HISTORY && <StatusHistory />}
-        {status == StatusCode.LINKING && <StatusLinking />}
-        {status == StatusCode.CANCEL && <StatusCancel />}
-      </LinearGradient>
-    </Dialog>
+    <MyPopup isVisible={visible}>
+      {status == StatusCode.QUEUE && (
+        <StatusQueue
+          topic={linkTopic}
+          task={listenStore.task}
+          onPress={() => clickToCancel()}
+        />
+      )}
+
+      {status == StatusCode.HISTORY && (
+        <StatusHistory
+          items={history}
+          onClickItem={(item) => {
+            fetchQueueInfo(item.teacherId);
+          }}
+          onPress={() => fetchQueueInfo()}
+        />
+      )}
+
+      {status == StatusCode.LINKING && (
+        <StatusLinking topic={linkTopic} onPress={() => clickToCancel()} />
+      )}
+
+      {status == StatusCode.CANCEL && (
+        <StatusCancel
+          topic={linkTopic}
+          onFinished={() => closeDialog(true)}
+          onPress={() => closeDialog()}
+        />
+      )}
+    </MyPopup>
   );
 };
 
 export default observer(TopicLinkDialog);
 
-const useStyles = makeStyles(theme => ({
-  wrap: {
-    position: 'relative',
-    padding: 0,
-    width: 400,
-    borderRadius: 20,
-  },
-  container: {
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-    paddingBottom: 35,
-    borderRadius: 20,
-    alignItems: 'center',
-  },
-
+const useStyles = makeStyles((theme) => ({
   title: {
     marginBottom: 35,
   },

@@ -200,7 +200,7 @@ const ListenCenter = () => {
     });
   };
 
-  // 退出登陆
+  // 退出登录
   useEffect(() => {
     if (outNum == 0) {
       if (timerOut.current) clearInterval(timerOut.current);
@@ -298,7 +298,7 @@ const ListenCenter = () => {
                   换一个人倾诉
                 </Button>
                 <Text style={{fontWeight: 'bold', marginTop: 10}}>
-                  {outNum}秒后为你自动退出登陆
+                  {outNum}秒后为你自动退出登录
                 </Text>
               </View>
             </View>

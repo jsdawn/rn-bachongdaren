@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import {Button, Dialog, Icon, Image, Text, makeStyles} from '@rneui/themed';
+import MyPopup from './MyPopup';
 
 import {useMessageStore, messageStore} from '@store/messageStore';
 
@@ -21,98 +22,74 @@ const MessageBox = observer(() => {
   }, [visible]);
 
   return (
-    <Dialog
-      isVisible={visible}
-      onBackdropPress={() => {}}
-      overlayStyle={styles.wrap}>
-      <LinearGradient style={styles.container} colors={['#E7EEFA', '#D1E1FF']}>
-        <Icon
-          containerStyle={styles.closeIcon}
-          name="close"
-          type="antdesign"
-          onPress={() => hide()}
-        />
+    <MyPopup isVisible={visible}>
+      <MyPopup.CloseIcon onPress={() => hide()} />
 
-        {options.showFace || options.face ? (
-          <>
-            <View style={styles.faceWrap}>
-              <Image
-                style={styles.face}
-                source={require('@assets/image/icon_sun.png')}
-              />
-            </View>
-            <View style={{height: 50}}></View>
-          </>
-        ) : null}
+      {options.showFace || options.face ? <MyPopup.FaceImage /> : null}
 
-        {options.title && (
-          <Text h2 style={styles.title}>
-            {options.title}
-          </Text>
-        )}
+      {options.title && (
+        <Text h2 style={styles.title}>
+          {options.title}
+        </Text>
+      )}
 
-        {options.message || options.iconProps ? (
-          <View style={styles.message}>
-            {options.iconProps && <Icon {...options.iconProps} />}
-            <Text h3>{options.message}</Text>
-          </View>
-        ) : null}
-
-        {options.desc && <Text style={styles.desc}>{options.desc}</Text>}
-
-        <View style={styles.actions}>
-          {options.showCancelButton ? (
-            <Button
-              containerStyle={{marginRight: 15}}
-              buttonStyle={{...styles.btn, ...styles.cancelBtn}}
-              title={options.cancelButtonText}
-              loading={cancelLoading}
-              color="error"
-              raised
-              onPress={() => {
-                if (options.onCancel) {
-                  setCancelLoading(true);
-                  options.onCancel(isHide => {
-                    (isHide == undefined || isHide) && hide();
-                    setCancelLoading(false);
-                  });
-                } else {
-                  hide();
-                }
-              }}
-            />
-          ) : null}
-          {options.showConfirmButton ? (
-            <Button
-              buttonStyle={styles.btn}
-              title={options.confirmButtonText}
-              loading={confirmLoading}
-              raised
-              onPress={() => {
-                if (options.onConfirm) {
-                  setConfirmLoading(true);
-                  options.onConfirm(isHide => {
-                    (isHide == undefined || isHide) && hide();
-                    setConfirmLoading(false);
-                  });
-                } else {
-                  hide();
-                }
-              }}
-            />
-          ) : null}
+      {options.message || options.iconProps ? (
+        <View style={styles.message}>
+          {options.iconProps && <Icon {...options.iconProps} />}
+          <Text h3>{options.message}</Text>
         </View>
-      </LinearGradient>
-    </Dialog>
+      ) : null}
+
+      {options.desc && <Text style={styles.desc}>{options.desc}</Text>}
+
+      <MyPopup.Actions>
+        {options.showCancelButton ? (
+          <MyPopup.Button
+            containerStyle={{marginRight: 15}}
+            title={options.cancelButtonText}
+            loading={cancelLoading}
+            color="error"
+            onPress={() => {
+              if (options.onCancel) {
+                setCancelLoading(true);
+                options.onCancel((isHide) => {
+                  (isHide == undefined || isHide) && hide();
+                  setCancelLoading(false);
+                });
+              } else {
+                hide();
+              }
+            }}
+          />
+        ) : null}
+        {options.showConfirmButton ? (
+          <MyPopup.Button
+            title={options.confirmButtonText}
+            loading={confirmLoading}
+            onPress={() => {
+              if (options.onConfirm) {
+                setConfirmLoading(true);
+                options.onConfirm((isHide) => {
+                  (isHide == undefined || isHide) && hide();
+                  setConfirmLoading(false);
+                });
+              } else {
+                hide();
+              }
+            }}
+          />
+        ) : null}
+      </MyPopup.Actions>
+    </MyPopup>
   );
 });
 
-MessageBox.show = opts => messageStore.show(opts);
+MessageBox.show = (opts) => messageStore.show(opts);
 MessageBox.hide = () => messageStore.hide();
 
 export default MessageBox;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   wrap: {
     position: 'relative',
     padding: 0,
@@ -157,20 +134,5 @@ const useStyles = makeStyles(theme => ({
   },
   desc: {
     marginBottom: 15,
-  },
-
-  actions: {
-    position: 'absolute',
-    bottom: -25,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  btn: {
-    paddingHorizontal: 35,
-    minWidth: 140,
-    height: 50,
-    fontSize: 15,
   },
 }));

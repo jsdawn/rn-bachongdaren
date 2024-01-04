@@ -25,7 +25,7 @@ export function authDevice(data) {
   });
 }
 
-// 用户登陆
+// 用户登录
 export function userLogin(data) {
   return request({
     url: '/front/login',
