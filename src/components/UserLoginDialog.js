@@ -6,8 +6,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import {InputController} from '@components/FormController';
 import MsgToast from '@components/MsgToast';
-import {Dialog, makeStyles, Button, Icon, Text} from '@rneui/themed';
-import UserSignInForm from './UserSignInForm';
+import {Dialog, makeStyles, Button, Icon, Text, Divider} from '@rneui/themed';
 
 import {getUserInfo, userLogin} from '@api/index';
 import {appStore} from '@store/appStore';
@@ -15,7 +14,6 @@ import {userStore} from '@store/userStore';
 
 const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
   const styles = useStyles();
-  const [active, setActive] = useState('login'); // login/signIn
 
   const {
     control,
@@ -99,11 +97,25 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
             buttonStyle={styles.btn}
             size="lg"
             radius={25}
+            raised
             loading={isSubmitting}
             onPress={handleSubmit(onSubmit, onError)}>
             登陆
           </Button>
         </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginVertical: 7,
+          }}>
+          <View style={styles.divider} />
+          <Text style={{marginHorizontal: 16, fontWeight: 'bold'}}>或</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <Text style={{fontSize: 13}}>屏幕右下角可使用IC卡刷卡登录</Text>
 
         {visible ? <MsgToast /> : null}
       </LinearGradient>
@@ -137,9 +149,14 @@ const useStyles = makeStyles(theme => ({
   },
 
   actions: {
+    marginTop: 15,
     width: 260,
   },
-  btn: {
-    borderColor: '#999',
+
+  divider: {
+    width: 30,
+    height: 1,
+    backgroundColor: theme.colors.black,
+    opacity: 0.2,
   },
 }));

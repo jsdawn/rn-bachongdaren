@@ -195,7 +195,7 @@ const ListenCenter = () => {
   const handleFinish = () => {
     MessageBox.show({
       title: '系统提示',
-      subTitle: '确定结束倾诉吗？',
+      message: '确定结束倾诉吗？',
       onConfirm(done) {},
     });
   };

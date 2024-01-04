@@ -37,8 +37,8 @@ const TopicPanel = () => {
   const clickItem = item => {
     if (!userStore.isUsered) {
       MessageBox.show({
-        title: '操作提示',
-        message: '请先点击右下角按钮登陆账号',
+        title: '',
+        message: '请先点击左下角按钮登陆账号',
         showCancelButton: false,
         confirmButtonText: '好的',
       });
@@ -47,7 +47,7 @@ const TopicPanel = () => {
 
     if (!isPermisOK) {
       MessageBox.show({
-        title: '权限提示',
+        title: '',
         message: '系统权限不足，请检查应用权限列表',
         showCancelButton: false,
         confirmButtonText: '好的',
@@ -100,7 +100,7 @@ const TopicPanel = () => {
     <ImageBackground
       style={{flex: 1}}
       source={require('@assets/image/topic_bg.jpg')}
-      resizeMode="stretch">
+      resizeMode="cover">
       <View style={styles.container}>
         <View style={styles.topicWrap}>
           <TagCloud

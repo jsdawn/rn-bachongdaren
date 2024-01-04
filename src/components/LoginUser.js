@@ -4,9 +4,9 @@ import {StyleSheet, TouchableOpacity, View} from 'react-native';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {Text} from '@rneui/themed';
-import UserLoginDialog from '@views/Home/components/UserLoginDialog';
 import MessageBox from './MessageBox';
 import MsgToast from './MsgToast';
+import UserLoginDialog from './UserLoginDialog';
 
 import {userLogout} from '@api/index';
 import {appStore} from '@store/appStore';
@@ -19,8 +19,8 @@ const LoginUser = ({showLogout = true}) => {
 
   const logout = () => {
     MessageBox.show({
-      title: '系统提示',
-      subTitle: '确定退出登陆吗？',
+      title: '',
+      message: '确定退出登陆吗？',
       onConfirm(done) {
         userLogout().catch(() => {}); // logout api
         // keep token
@@ -64,10 +64,15 @@ const LoginUser = ({showLogout = true}) => {
         visible={visible}
         setVisible={setVisible}
         onSuccess={data => {
-          MsgToast.show({
-            text1: '登陆成功',
-            text2: `接下来请根据自己心情，在屏幕上选择你想倾听的话题！`,
-          });
+          setTimeout(() => {
+            MessageBox.show({
+              title: '',
+              message: '登陆成功',
+              desc: '接下来请根据自己心情，在屏幕上选择你想倾听的话题！',
+              showCancelButton: false,
+              confirmButtonText: '好的',
+            });
+          }, 0);
         }}
       />
     </>

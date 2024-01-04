@@ -26,16 +26,14 @@ const MyPopup = ({visible, setVisible, children, ...options}) => {
           </Text>
         )}
 
-        {options.subTitle || options.iconProps ? (
-          <View style={styles.subTitle}>
+        {options.message || options.iconProps ? (
+          <View style={styles.message}>
             {options.iconProps && <Icon {...options.iconProps} />}
-            <Text h3>{options.subTitle}</Text>
+            <Text h3>{options.message}</Text>
           </View>
         ) : null}
 
-        {options.message && (
-          <Text style={styles.message}>{options.message}</Text>
-        )}
+        {options.desc && <Text style={styles.desc}>{options.desc}</Text>}
 
         {children}
       </LinearGradient>
@@ -75,12 +73,12 @@ const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: 20,
   },
-  subTitle: {
+  message: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
-  message: {
+  desc: {
     marginBottom: 20,
   },
 

@@ -4,11 +4,12 @@ import {configure, makeAutoObservable} from 'mobx';
 configure({useProxies: 'never'});
 
 const initOpts = {
-  title: '系统提示',
+  title: '',
   confirmButtonText: '确定',
   showConfirmButton: true,
   cancelButtonText: '取消',
   showCancelButton: true,
+  showFace: true,
 };
 
 class MessageStore {

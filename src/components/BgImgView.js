@@ -17,12 +17,22 @@ const BgImgView = ({
     <ImageBackground
       source={source}
       resizeMode="stretch"
-      style={{width, aspectRatio: width / height, ...centerStyle, ...style}}>
+      style={{
+        width,
+        aspectRatio: width ? width / height : undefined,
+        ...centerStyle,
+        ...style,
+      }}>
       {children}
     </ImageBackground>
   ) : (
     <View
-      style={{width, aspectRatio: width / height, ...centerStyle, ...style}}>
+      style={{
+        width,
+        aspectRatio: width ? width / height : undefined,
+        ...centerStyle,
+        ...style,
+      }}>
       {children}
     </View>
   );

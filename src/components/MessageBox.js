@@ -3,7 +3,7 @@ import {observer} from 'mobx-react';
 import {View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import {Button, Dialog, Icon, Text, makeStyles} from '@rneui/themed';
+import {Button, Dialog, Icon, Image, Text, makeStyles} from '@rneui/themed';
 
 import {useMessageStore, messageStore} from '@store/messageStore';
 
@@ -33,22 +33,32 @@ const MessageBox = observer(() => {
           onPress={() => hide()}
         />
 
+        {options.showFace || options.face ? (
+          <>
+            <View style={styles.faceWrap}>
+              <Image
+                style={styles.face}
+                source={require('@assets/image/icon_sun.png')}
+              />
+            </View>
+            <View style={{height: 50}}></View>
+          </>
+        ) : null}
+
         {options.title && (
           <Text h2 style={styles.title}>
             {options.title}
           </Text>
         )}
 
-        {options.subTitle || options.iconProps ? (
-          <View style={styles.subTitle}>
+        {options.message || options.iconProps ? (
+          <View style={styles.message}>
             {options.iconProps && <Icon {...options.iconProps} />}
-            <Text h3>{options.subTitle}</Text>
+            <Text h3>{options.message}</Text>
           </View>
         ) : null}
 
-        {options.message && (
-          <Text style={styles.message}>{options.message}</Text>
-        )}
+        {options.desc && <Text style={styles.desc}>{options.desc}</Text>}
 
         <View style={styles.actions}>
           {options.showCancelButton ? (
@@ -112,7 +122,7 @@ const useStyles = makeStyles(theme => ({
   container: {
     paddingHorizontal: 20,
     paddingVertical: 25,
-    paddingBottom: 35,
+    paddingBottom: 40,
     borderRadius: 20,
     alignItems: 'center',
   },
@@ -124,16 +134,29 @@ const useStyles = makeStyles(theme => ({
     opacity: 0.4,
   },
 
-  title: {
-    marginBottom: 20,
-  },
-  subTitle: {
+  faceWrap: {
+    position: 'absolute',
+    top: -56,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+  },
+  face: {
+    width: 109,
+    height: 113,
+  },
+
+  title: {
+    marginBottom: 15,
   },
   message: {
-    marginBottom: 20,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  desc: {
+    marginBottom: 15,
   },
 
   actions: {
