@@ -26,7 +26,6 @@ const ListenerItem = ({item, size, showStatus = true, onPress}) => {
           style={styles.bg}
         ></BgImgView>
 
-        {/* require('@assets/image/ls_item_bg.png') */}
         <MyAvatar avatar={item.avatar} style={styles.avatar}>
           {showStatus && (
             <Image

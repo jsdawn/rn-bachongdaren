@@ -6,12 +6,15 @@ import {
   NativeModules,
   NativeEventEmitter,
   BackHandler,
+  Dimensions,
 } from 'react-native';
 
 import BgImgView from '@components/BgImgView';
 import ListenerItem from '@components/ListenerItem';
+import ListenSettleDialog from '@components/ListenSettleDialog';
 import LoginUser from '@components/LoginUser';
 import MessageBox from '@components/MessageBox';
+import MyAvatar from '@components/MyAvatar';
 import {useNavigation} from '@react-navigation/native';
 import {Button, Icon, Text, makeStyles} from '@rneui/themed';
 import TopicLinkDialog from '@views/Home/components/TopicLinkDialog';
@@ -37,9 +40,11 @@ const ListenCenter = () => {
   const eventListener = useRef(null);
   const navigation = useNavigation();
 
+  const [showSettle, setShowSettle] = useState(true);
+
   const [linkVisible, setLinkVisible] = useState(false);
   const [isExclude, setIsExclude] = useState(false);
-  const [status, setStatus, statusRef] = useStateRef(StatusCode.CALLING);
+  const [status, setStatus, statusRef] = useStateRef(StatusCode.DIALING);
   // 通话状态
   const callState = useRef({});
   // 前一次通话记录
@@ -64,17 +69,17 @@ const ListenCenter = () => {
     setStatus(StatusCode.CALLING);
     setDuration(0);
     timerDur.current = setInterval(() => {
-      setDuration(pre => pre + 1);
+      setDuration((pre) => pre + 1);
     }, 1000);
 
-    AutoAnswerModule.getLastCall().then(res => {
+    AutoAnswerModule.getLastCall().then((res) => {
       preCallLog.current = res;
     });
   };
 
   // 挂断后，定时获取最近通话记录
   const getLastCallInfo = () => {
-    AutoAnswerModule.getLastCall().then(res => {
+    AutoAnswerModule.getLastCall().then((res) => {
       if (!res.phNumber || res.startDate == preCallLog.current.startDate) {
         timerLog.current = setTimeout(() => {
           getLastCallInfo();
@@ -108,7 +113,7 @@ const ListenCenter = () => {
   };
 
   // 挂断
-  const toBeHangUp = isManual => {
+  const toBeHangUp = (isManual) => {
     if (isManual) {
       // 页面按钮触发 挂断通话。等待监听处理
       AutoAnswerModule.endPhoneCalling();
@@ -133,7 +138,7 @@ const ListenCenter = () => {
     autoLogOut();
   };
 
-  const fmtDuration = num => {
+  const fmtDuration = (num) => {
     let h = Math.floor(num / (60 * 60)) % 24;
     let m = Math.floor(num / 60) % 60;
     let s = Math.floor(num) % 60;
@@ -144,7 +149,7 @@ const ListenCenter = () => {
 
   // 监听原生通话状态 处理函数
   // 注：目前判断不出是否已接听，按拨号即接听处理）
-  const callStateHandler = params => {
+  const callStateHandler = (params) => {
     console.log('======event.eventProperty=====');
     console.log(params);
 
@@ -159,7 +164,7 @@ const ListenCenter = () => {
   };
 
   // 重连
-  const handleReLink = _isExclude => {
+  const handleReLink = (_isExclude) => {
     if (timerDur.current) clearInterval(timerDur.current);
     if (timerLog.current) clearInterval(timerLog.current);
     if (timerOut.current) clearInterval(timerOut.current);
@@ -184,7 +189,7 @@ const ListenCenter = () => {
   };
 
   // 关闭重连
-  const onClosedLink = isLogOut => {
+  const onClosedLink = (isLogOut) => {
     if (isLogOut) {
       navigation.goBack();
       return;
@@ -223,7 +228,7 @@ const ListenCenter = () => {
 
     eventListener.current = eventEmitter.addListener(
       'callStateChanged',
-      val => {
+      (val) => {
         callStateHandler(val);
       },
     );
@@ -240,61 +245,81 @@ const ListenCenter = () => {
     };
   }, []);
 
-  // ===Status Components===
-
-  const StatusCalling = observer(() => {
-    return (
-      <View style={styles.callWrap}>
-        <View style={styles.callInfo}>
-          <Text h1 style={styles.callName}>
-            {listenStore.listener?.nickname}
-          </Text>
-          <Text style={styles.callDesc}>
-            因为陌生，所以勇敢。因为距离，所以美丽。
-          </Text>
-        </View>
+  return (
+    <ImageBackground
+      style={{flex: 1}}
+      source={require('@assets/image/topic_bg.jpg')}
+      resizeMode="stretch"
+    >
+      <View style={styles.container}>
+        <BgImgView
+          source={require('@assets/image/call_pic.png')}
+          width={489}
+          height={461}
+          style={styles.bgpic}
+        ></BgImgView>
 
         <BgImgView
           style={styles.panel}
           source={require('@assets/image/call_panel.png')}
-          center
-          width={493}
-          height={392}>
-          <BgImgView
-            source={require('@assets/image/call_panel_name.png')}
-            center
-            width={320}
-            height={136}>
-            <Text style={styles.panelName} h1>
-              {listenStore.topic?.name}
-            </Text>
-          </BgImgView>
-          <Text style={styles.panelTime}>{fmtDuration(duration)}</Text>
-          <Button
-            buttonStyle={styles.panelBtn}
-            raised
-            disabled={!StatusCode.CALLING}
-            onPress={() => handleFinish()}>
-            结束倾诉
-          </Button>
+          width={358}
+          height={410}
+        >
+          <View style={styles.avatarWrap}>
+            <MyAvatar large></MyAvatar>
+          </View>
+          <Text style={styles.panelName}>{listenStore.listener?.nickname}</Text>
+
+          {status === StatusCode.DIALING ? (
+            <>
+              <View style={styles.panelIcon}>
+                <Icon
+                  iconStyle={styles.icon}
+                  name="phone-in-talk"
+                  type="materialIcons"
+                  reverse
+                  size={40}
+                />
+              </View>
+              <Text style={{fontSize: 15}}>
+                即将为你接通麦当劳叔叔，请拿起听筒...
+              </Text>
+              <Button onPress={() => setShowSettle(true)}>显示</Button>
+            </>
+          ) : (
+            <>
+              <Text style={styles.panelTime}>{fmtDuration(duration)}</Text>
+              <Button
+                buttonStyle={styles.panelBtn}
+                raised
+                disabled={status !== StatusCode.CALLING}
+                onPress={() => handleFinish()}
+              >
+                结束倾诉
+              </Button>
+            </>
+          )}
 
           {status == StatusCode.HANGUP && (
             <View style={{width: '60%', alignItems: 'center'}}>
               <View style={styles.panel2}>
                 <Text
-                  style={{marginBottom: 20, fontSize: 17, fontWeight: 'bold'}}>
+                  style={{marginBottom: 20, fontSize: 17, fontWeight: 'bold'}}
+                >
                   还有未说完的话...
                 </Text>
                 <Button
                   buttonStyle={styles.panelBtn}
                   size="sm"
-                  onPress={() => handleReLink()}>
+                  onPress={() => handleReLink()}
+                >
                   重新连线 {listenStore.listener?.nickname}
                 </Button>
                 <Button
                   buttonStyle={styles.panelBtn}
                   size="sm"
-                  onPress={() => handleReLink(true)}>
+                  onPress={() => handleReLink(true)}
+                >
                   换一个人倾诉
                 </Button>
                 <Text style={{fontWeight: 'bold', marginTop: 10}}>
@@ -304,41 +329,8 @@ const ListenCenter = () => {
             </View>
           )}
         </BgImgView>
-      </View>
-    );
-  });
 
-  return (
-    <ImageBackground
-      style={{flex: 1}}
-      source={require('@assets/image/topic_bg.jpg')}
-      resizeMode="stretch">
-      <View style={styles.container}>
-        {status == StatusCode.DIALING && (
-          <View style={styles.dialWrap}>
-            <ListenerItem
-              size="lg"
-              showStatus={false}
-              item={listenStore.listener}
-            />
-
-            <View style={styles.dialContent}>
-              <Icon
-                iconStyle={styles.dialIcon}
-                name="phone-in-talk"
-                type="materialIcons"
-                raised
-              />
-              <Text style={styles.dialText} h2>
-                即将为你接通{listenStore.listener?.nickname}，请拿起听筒...
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {(status == StatusCode.CALLING || status == StatusCode.HANGUP) && (
-          <StatusCalling />
-        )}
+        <ListenSettleDialog visible={showSettle} setVisible={setShowSettle} />
 
         <TopicLinkDialog
           visible={linkVisible}
@@ -358,51 +350,41 @@ const ListenCenter = () => {
 
 export default observer(ListenCenter);
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   container: {
-    flex: 1,
-  },
-
-  dialWrap: {
+    padding: 50,
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  dialContent: {
-    marginLeft: 25,
-    alignItems: 'flex-start',
-  },
-  dialIcon: {},
-  dialText: {
-    marginTop: 25,
   },
 
-  callWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
+  bgpic: {
+    position: 'absolute',
+    left: 60,
+    bottom: 0,
+    width: Dimensions.get('window').width / 2,
+    aspectRatio: 489 / 461,
+  },
+
+  panel: {
+    position: 'relative',
+    paddingTop: 120,
     alignItems: 'center',
   },
-  callInfo: {
-    marginRight: 35,
-    width: 290,
+  avatarWrap: {
+    position: 'absolute',
+    top: -15,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
-  callName: {
-    marginTop: 20,
+  panelName: {
     fontSize: 24,
   },
-  callDesc: {
-    marginTop: 55,
-    fontSize: 18,
-  },
-
-  panel: {},
-  panelName: {
-    fontSize: 26,
-  },
   panelTime: {
-    marginBottom: 10,
+    marginTop: 60,
+    marginBottom: 20,
     fontSize: 45,
     fontWeight: 'bold',
     letterSpacing: 1.1,
@@ -410,5 +392,8 @@ const useStyles = makeStyles(theme => ({
   panelBtn: {
     width: 180,
     height: 50,
+  },
+  panelIcon: {
+    marginVertical: 20,
   },
 }));

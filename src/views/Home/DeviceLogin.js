@@ -29,7 +29,7 @@ const DeviceLogin = () => {
     },
   });
 
-  const onSubmit = async data => {
+  const onSubmit = async (data) => {
     const res = await register(data).catch(() => {});
     if (!res || !res.data) return;
     appStore.setMachineToken(res.data?.machine_token);
@@ -49,58 +49,54 @@ const DeviceLogin = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        style={styles.bgImage}
-        source={require('../../assets/image/device_bg.png')}
-        resizeMode="stretch">
-        {/* <Image
-          style={styles.logo}
-          source={require('../../assets/image/logo_lg.png')}
-        /> */}
+    <ImageBackground
+      style={{flex: 1}}
+      source={require('@assets/image/start_bg.png')}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        <InputController
+          control={control}
+          errors={errors}
+          rules={{required: '正在获取设备ID'}}
+          name="uuid"
+          placeholder="获取设备ID"
+          disabled
+        />
 
-        <View style={styles.form}>
-          <InputController
-            control={control}
-            errors={errors}
-            rules={{required: '正在获取设备ID'}}
-            name="uuid"
-            label="设备ID"
-            placeholder="获取设备ID"
-            disabled
-          />
+        <InputController
+          control={control}
+          errors={errors}
+          rules={{required: '请输入设备注册码'}}
+          name="code"
+          placeholder="请输入设备注册码"
+        />
 
-          <InputController
-            control={control}
-            errors={errors}
-            rules={{required: '请输入注册码'}}
-            name="code"
-            label="注册码"
-            placeholder="请输入注册码"
-          />
-
-          <View style={styles.actions}>
-            <Button
-              buttonStyle={styles.submitBtn}
-              size="lg"
-              radius={10}
-              loading={isSubmitting}
-              onPress={handleSubmit(onSubmit)}>
-              登 陆
-            </Button>
-          </View>
+        <View style={styles.actions}>
+          <Button
+            buttonStyle={styles.submitBtn}
+            size="lg"
+            raised
+            color="success"
+            loading={isSubmitting}
+            onPress={handleSubmit(onSubmit)}
+          >
+            设备登录
+          </Button>
         </View>
-      </ImageBackground>
-    </View>
+      </View>
+    </ImageBackground>
   );
 };
 
 export default observer(DeviceLogin);
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   container: {
+    padding: 50,
     flex: 1,
-    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bgImage: {
     flex: 1,
@@ -111,13 +107,8 @@ const useStyles = makeStyles(theme => ({
     width: 143,
     height: 50,
   },
-  form: {
-    width: 320,
-  },
   actions: {
-    marginTop: 20,
-  },
-  submitBtn: {
-    backgroundColor: theme.colors.success,
+    marginTop: 15,
+    width: 260,
   },
 }));

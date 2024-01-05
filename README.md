@@ -199,3 +199,17 @@ useEffect(() => {
     ...
   }
   ```
+
+## 安卓版本
+
+```
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="appname"
+    <!-- 用于版本升级,值为int类型,用于判断app是否须要升级,每次可递增设置 -->
+    android:versionCode="1"
+    <!-- 版本号名称,用于显示给用户看到的app版本号 -->
+    android:versionName="1.0.0">
+ </manifest>
+```

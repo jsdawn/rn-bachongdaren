@@ -3,7 +3,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 
 import BgImgView from './BgImgView';
 
-const MyAvatar = ({avatar, style, children}) => {
+const MyAvatar = ({avatar, large, style, children}) => {
   return (
     <BgImgView
       source={
@@ -11,10 +11,14 @@ const MyAvatar = ({avatar, style, children}) => {
           ? require('@assets/image/ls_avatar.png')
           : require('@assets/image/ls_avatar_default.png')
       }
-      style={{...styles.bgImg, ...style}}
+      style={{...(large ? styles.bgImgLg : styles.bgImg), ...style}}
     >
       {avatar && (
-        <Image source={avatar} resizeMode="cover" style={styles.img}></Image>
+        <Image
+          source={avatar}
+          resizeMode="cover"
+          style={large ? styles.imgLg : styles.img}
+        ></Image>
       )}
 
       {children}
@@ -34,6 +38,19 @@ const styles = StyleSheet.create({
   img: {
     width: 60,
     height: 60,
+    aspectRatio: 1,
     borderRadius: 35,
+  },
+
+  bgImgLg: {
+    width: 118,
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imgLg: {
+    width: 95,
+    height: 95,
+    borderRadius: 50,
   },
 });

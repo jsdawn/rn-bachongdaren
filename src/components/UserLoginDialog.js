@@ -2,11 +2,10 @@ import React, {useState} from 'react';
 import {observer} from 'mobx-react';
 import {useForm} from 'react-hook-form';
 import {ToastAndroid, View} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
 import {InputController} from '@components/FormController';
 import MsgToast from '@components/MsgToast';
-import {Dialog, makeStyles, Button, Icon, Text, Divider} from '@rneui/themed';
+import { makeStyles, Button, Icon, Text, } from '@rneui/themed';
 import MyPopup from './MyPopup';
 
 import {getUserInfo, userLogin} from '@api/index';
