@@ -1,11 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {observer} from 'mobx-react';
-import {TouchableOpacity, View} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 
-import ListenerItem from '@components/ListenerItem';
 import MyPopup from '@components/MyPopup';
-import {Dialog, Text, makeStyles, Button, Icon} from '@rneui/themed';
+import {makeStyles} from '@rneui/themed';
 import {
   StatusCancel,
   StatusHistory,
@@ -59,7 +56,7 @@ const TopicLinkDialog = ({
   const closeDialog = (isLogout) => {
     setStatus(StatusCode.QUEUE);
     if (isLogout) {
-      userStore.clearUser();
+      userStore.clearUserCache();
     }
     setVisible(false);
     onClosed?.(isLogout);
@@ -89,9 +86,11 @@ const TopicLinkDialog = ({
     const data = {
       topic: linkTopic.name,
     };
+    // 指定该 ID
     if (!isExclude && _teacherId) {
       data.teacherId = _teacherId;
     }
+    // 排除该 ID
     if (isExclude && _teacherId) {
       data.params = {excludeTeacherIds: [_teacherId]};
     }
@@ -182,8 +181,8 @@ const TopicLinkDialog = ({
 
     // return;
 
-    if (!isExclude && linkListener?.teacherId) {
-      // 指定倾听师
+    if (linkListener?.teacherId) {
+      // 指定了倾听师，或排除该倾听师（不调历史）
       fetchQueueInfo();
     } else {
       // 查询历史倾听师
@@ -245,39 +244,5 @@ const TopicLinkDialog = ({
 export default observer(TopicLinkDialog);
 
 const useStyles = makeStyles((theme) => ({
-  title: {
-    marginBottom: 35,
-  },
-  subTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  desc: {
-    marginBottom: 10,
-  },
-
-  actions: {
-    position: 'absolute',
-    bottom: -25,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  btn: {
-    paddingHorizontal: 35,
-    minWidth: 160,
-    height: 50,
-    fontSize: 15,
-  },
-
-  historyWrap: {
-    width: 150 * 2 + 8 * 4,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  wrap: {},
 }));

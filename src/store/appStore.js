@@ -8,21 +8,21 @@ configure({useProxies: 'never'});
 
 class AppStore {
   machineToken = ''; // 设备token
-  userToken = ''; // 用户token
   sessionObj = null; // request请求体
   uuid = ''; // 安卓ID
   wind = {}; // window info
 
   constructor() {
     makeAutoObservable(this, {}, {autoBind: true});
+    // 缓存数据，
     makePersistable(this, {
       name: 'appStore',
-      properties: ['machineToken', 'userToken'],
+      properties: ['machineToken'],
       storage: AsyncStorage,
       //expireIn: 10000, // One day in milliseconds
       //removeOnExpiration: true,
     }).then(
-      action(res => {
+      action((res) => {
         // console.log(res);
       }),
     );
@@ -36,26 +36,23 @@ class AppStore {
     this.machineToken = val || '';
   }
 
-  setUserToken(val) {
-    this.userToken = val || '';
-  }
-
   setSessionObj(val) {
     this.sessionObj = val || null;
   }
 
   setUuid(val) {
-    this.uuid = val || null;
+    this.uuid = val || '';
   }
 
   setWind(val) {
     this.wind = val || {};
   }
 
-  clearCache() {
+  clearAppCache() {
     this.machineToken = '';
-    this.userToken = '';
     this.sessionObj = null;
+    this.uuid = '';
+    this.wind = {};
   }
 }
 

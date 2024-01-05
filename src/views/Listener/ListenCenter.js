@@ -5,21 +5,21 @@ import {
   ImageBackground,
   NativeModules,
   NativeEventEmitter,
-  BackHandler,
   Dimensions,
+  Image,
 } from 'react-native';
 
 import BgImgView from '@components/BgImgView';
-import ListenerItem from '@components/ListenerItem';
 import ListenSettleDialog from '@components/ListenSettleDialog';
 import LoginUser from '@components/LoginUser';
 import MessageBox from '@components/MessageBox';
 import MyAvatar from '@components/MyAvatar';
 import {useNavigation} from '@react-navigation/native';
-import {Button, Icon, Text, makeStyles} from '@rneui/themed';
+import {Button, Text, makeStyles} from '@rneui/themed';
 import TopicLinkDialog from '@views/Home/components/TopicLinkDialog';
 
 import {requestPermissions} from '@utils/permissions';
+import useBackHandler from '@utils/useBackHandler';
 import useStateRef from '@utils/useStateRef';
 import {updateDialogStatus} from '@api/index';
 import {listenStore} from '@store/listenStore';
@@ -35,12 +35,13 @@ const StatusCode = {
 
 const ListenCenter = () => {
   const styles = useStyles();
+  useBackHandler();
 
   const eventEmitter = new NativeEventEmitter(AutoAnswerModule);
   const eventListener = useRef(null);
   const navigation = useNavigation();
 
-  const [showSettle, setShowSettle] = useState(true);
+  const [showSettle, setShowSettle] = useState(false);
 
   const [linkVisible, setLinkVisible] = useState(false);
   const [isExclude, setIsExclude] = useState(false);
@@ -53,9 +54,7 @@ const ListenCenter = () => {
     phNumber: '',
     startDate: '',
   });
-  const timerOut = useRef(null); // 退出timer
   const timerLog = useRef(null); // 通话记录timer
-  const [outNum, setOutNum] = useState(10);
   const timerDur = useRef(null); // 时长timer
   const [duration, setDuration, durationRef] = useStateRef(0); // 秒
 
@@ -102,28 +101,13 @@ const ListenCenter = () => {
     });
   };
 
-  // 自动登出
-  const autoLogOut = () => {
-    if (timerOut.current) clearInterval(timerOut.current);
-    // 登出读条
-    // setOutNum(10);
-    // timerOut.current = setInterval(() => {
-    //   setOutNum(pre => pre - 1);
-    // }, 1000);
-  };
-
   // 挂断
-  const toBeHangUp = (isManual) => {
-    if (isManual) {
-      // 页面按钮触发 挂断通话。等待监听处理
-      AutoAnswerModule.endPhoneCalling();
-      return;
-    }
-
+  const toBeHangUp = () => {
     // 监听到原生通话挂断
     // 取消监听
     AutoAnswerModule.unregisterPhoneStateListener();
     setStatus(StatusCode.HANGUP);
+    setShowSettle(true);
     if (timerDur.current) clearInterval(timerDur.current);
     // 获取通话记录
     getLastCallInfo();
@@ -134,8 +118,6 @@ const ListenCenter = () => {
         status: 9, // 通话结束
       }).catch(() => {});
     }
-
-    autoLogOut();
   };
 
   const fmtDuration = (num) => {
@@ -165,12 +147,14 @@ const ListenCenter = () => {
 
   // 重连
   const handleReLink = (_isExclude) => {
+    setShowSettle(false);
     if (timerDur.current) clearInterval(timerDur.current);
     if (timerLog.current) clearInterval(timerLog.current);
-    if (timerOut.current) clearInterval(timerOut.current);
 
     setIsExclude(!!_isExclude);
-    setLinkVisible(true);
+    setTimeout(() => {
+      setLinkVisible(true);
+    }, 0);
   };
 
   // 重连成功，关闭弹窗
@@ -179,7 +163,6 @@ const ListenCenter = () => {
     setStatus(StatusCode.DIALING);
     callState.current = {};
     preCallLog.current = {};
-    setOutNum(10);
     setDuration(0);
     // call phone
     if (listenStore.listener?.calledNo) {
@@ -194,35 +177,32 @@ const ListenCenter = () => {
       navigation.goBack();
       return;
     }
-    autoLogOut();
   };
 
   const handleFinish = () => {
     MessageBox.show({
-      title: '系统提示',
+      title: '',
       message: '确定结束倾诉吗？',
-      onConfirm(done) {},
+      onConfirm(done) {
+        // 页面按钮触发 挂断通话。等待监听处理
+        AutoAnswerModule.endPhoneCalling();
+        done();
+      },
     });
   };
 
-  // 退出登录
-  useEffect(() => {
-    if (outNum == 0) {
-      if (timerOut.current) clearInterval(timerOut.current);
-      userStore.clearUser();
-      navigation.goBack();
-    }
-  }, [outNum]);
+  // 退出登录倒计时
+  const handleCountdown = () => {
+    userStore.clearUserCache();
+    navigation.goBack();
+  };
 
   // init start
   useEffect(() => {
-    // 禁用系统返回键
-    BackHandler.addEventListener('hardwareBackPress', () => true);
-
     requestPermissions().then(() => {
       if (listenStore.listener?.calledNo) {
         // 拨打电话并开始监听 phoneState
-        // AutoAnswerModule.callPhone(listenStore.listener.calledNo);
+        AutoAnswerModule.callPhone(listenStore.listener.calledNo);
       }
     });
 
@@ -236,7 +216,6 @@ const ListenCenter = () => {
     return () => {
       if (timerDur.current) clearInterval(timerDur.current);
       if (timerLog.current) clearInterval(timerLog.current);
-      if (timerOut.current) clearInterval(timerOut.current);
 
       if (eventListener.current) {
         eventListener.current.remove();
@@ -273,12 +252,9 @@ const ListenCenter = () => {
           {status === StatusCode.DIALING ? (
             <>
               <View style={styles.panelIcon}>
-                <Icon
-                  iconStyle={styles.icon}
-                  name="phone-in-talk"
-                  type="materialIcons"
-                  reverse
-                  size={40}
+                <Image
+                  source={require('@assets/image/icon_call.png')}
+                  style={{width: 142, height: 142}}
                 />
               </View>
               <Text style={{fontSize: 15}}>
@@ -299,38 +275,16 @@ const ListenCenter = () => {
               </Button>
             </>
           )}
-
-          {status == StatusCode.HANGUP && (
-            <View style={{width: '60%', alignItems: 'center'}}>
-              <View style={styles.panel2}>
-                <Text
-                  style={{marginBottom: 20, fontSize: 17, fontWeight: 'bold'}}
-                >
-                  还有未说完的话...
-                </Text>
-                <Button
-                  buttonStyle={styles.panelBtn}
-                  size="sm"
-                  onPress={() => handleReLink()}
-                >
-                  重新连线 {listenStore.listener?.nickname}
-                </Button>
-                <Button
-                  buttonStyle={styles.panelBtn}
-                  size="sm"
-                  onPress={() => handleReLink(true)}
-                >
-                  换一个人倾诉
-                </Button>
-                <Text style={{fontWeight: 'bold', marginTop: 10}}>
-                  {outNum}秒后为你自动退出登录
-                </Text>
-              </View>
-            </View>
-          )}
         </BgImgView>
 
-        <ListenSettleDialog visible={showSettle} setVisible={setShowSettle} />
+        <ListenSettleDialog
+          visible={showSettle}
+          setVisible={setShowSettle}
+          listener={listenStore.listener}
+          onRelink={() => handleReLink()}
+          onSwitch={() => handleReLink(true)}
+          onCountdown={() => handleCountdown()}
+        />
 
         <TopicLinkDialog
           visible={linkVisible}
@@ -394,6 +348,6 @@ const useStyles = makeStyles((theme) => ({
     height: 50,
   },
   panelIcon: {
-    marginVertical: 20,
+    marginVertical: 0,
   },
 }));

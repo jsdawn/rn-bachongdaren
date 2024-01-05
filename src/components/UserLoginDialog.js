@@ -5,11 +5,10 @@ import {ToastAndroid, View} from 'react-native';
 
 import {InputController} from '@components/FormController';
 import MsgToast from '@components/MsgToast';
-import { makeStyles, Button, Icon, Text, } from '@rneui/themed';
+import {makeStyles, Button, Icon, Text} from '@rneui/themed';
 import MyPopup from './MyPopup';
 
 import {getUserInfo, userLogin} from '@api/index';
-import {appStore} from '@store/appStore';
 import {userStore} from '@store/userStore';
 
 const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
@@ -30,14 +29,14 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
     },
   });
 
-  const onSubmit = async data => {
+  const onSubmit = async (data) => {
     const res = await userLogin(data).catch(() => {});
     if (!res) return;
-    appStore.setUserToken(res.token);
+    userStore.setUserToken(res.token);
 
     const res2 = await getUserInfo().catch(() => {});
     if (!res2) return;
-    userStore.updateUser({
+    userStore.setUser({
       ...res2.data,
     });
     reset();
@@ -45,9 +44,9 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
     onSuccess?.(data);
   };
 
-  const onError = err => {
+  const onError = (err) => {
     let msg = '';
-    Object.keys(err).forEach(k => {
+    Object.keys(err).forEach((k) => {
       if (err[k] && err[k].message && !msg) {
         msg = err[k].message;
       }
@@ -97,7 +96,8 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
           radius={25}
           raised
           loading={isSubmitting}
-          onPress={handleSubmit(onSubmit, onError)}>
+          onPress={handleSubmit(onSubmit, onError)}
+        >
           登录
         </Button>
       </View>
@@ -107,7 +107,8 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
           flexDirection: 'row',
           alignItems: 'center',
           marginVertical: 7,
-        }}>
+        }}
+      >
         <View style={styles.divider} />
         <Text style={{marginHorizontal: 16, fontWeight: 'bold'}}>或</Text>
         <View style={styles.divider} />
@@ -122,7 +123,7 @@ const UserLoginDialog = observer(({visible, setVisible, onSuccess}) => {
 
 export default UserLoginDialog;
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   wrap: {
     padding: 0,
     width: 400,

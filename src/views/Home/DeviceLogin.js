@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
 import {useForm} from 'react-hook-form';
-import {View, ImageBackground} from 'react-native';
+import {View, ImageBackground, ToastAndroid} from 'react-native';
+import {getAndroidId} from 'react-native-device-info';
 
 import {InputController} from '@components/FormController';
 import {useNavigation} from '@react-navigation/native';
@@ -44,8 +45,27 @@ const DeviceLogin = () => {
     }
   };
 
+  const onError = (err) => {
+    let msg = '';
+    Object.keys(err).forEach((k) => {
+      if (err[k] && err[k].message && !msg) {
+        msg = err[k].message;
+      }
+    });
+    if (msg) {
+      ToastAndroid.show(msg, ToastAndroid.SHORT);
+    }
+  };
+
   useEffect(() => {
-    setValue('uuid', appStore.uuid);
+    if (appStore.uuid) {
+      setValue('uuid', appStore.uuid);
+    } else {
+      getAndroidId().then((_uuid) => {
+        appStore.setUuid(_uuid);
+        setValue('uuid', _uuid);
+      });
+    }
   }, []);
 
   return (
@@ -79,7 +99,7 @@ const DeviceLogin = () => {
             raised
             color="success"
             loading={isSubmitting}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit, onError)}
           >
             设备登录
           </Button>

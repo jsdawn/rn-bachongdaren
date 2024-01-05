@@ -14,15 +14,20 @@ import LogoFlag from '@components/LogoFlag';
 import {useNavigation} from '@react-navigation/native';
 import {Button, Image, Text} from '@rneui/themed';
 
+import useBackHandler from '@utils/useBackHandler';
 import {authDevice} from '@api/index';
 import {appStore} from '@store/appStore';
+import {userStore} from '@store/userStore';
 
 const LaunchScreen = () => {
   const navigation = useNavigation();
+  useBackHandler();
+
   const [loading, setLoading] = useState(true);
 
   const handleCache = () => {
-    appStore.clearCache();
+    appStore.clearAppCache();
+    userStore.clearUserCache();
   };
 
   const handleLaunch = () => {
@@ -71,7 +76,7 @@ const LaunchScreen = () => {
           <View style={styles.debugInfo}>
             <Text>androidId: {appStore.uuid}</Text>
             <Text>machineToken: {appStore.machineToken}</Text>
-            <Text>userToken: {appStore.userToken}</Text>
+            <Text>userToken: {userStore.userToken}</Text>
             <Text>__DEV__: {__DEV__ ? 'true' : 'false'}</Text>
             <View style={{height: 20}}></View>
             <Button buttonStyle={{width: 150}} onPress={handleCache}>

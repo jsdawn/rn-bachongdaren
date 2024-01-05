@@ -1,11 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {observer} from 'mobx-react';
-import {
-  TouchableOpacity,
-  View,
-  BackHandler,
-  ImageBackground,
-} from 'react-native';
+import {TouchableOpacity, View, ImageBackground} from 'react-native';
 import {TagCloud} from 'react-tagcloud/rn';
 
 import TopicLinkDialog from './components/TopicLinkDialog';
@@ -13,15 +8,17 @@ import LoginUser from '@components/LoginUser';
 import LogoFlag from '@components/LogoFlag';
 import MessageBox from '@components/MessageBox';
 import {useNavigation} from '@react-navigation/native';
-import {makeStyles, Text} from '@rneui/themed';
+import {Button, Icon, makeStyles, Text} from '@rneui/themed';
 
 import {requestPermissions} from '@utils/permissions';
+import useBackHandler from '@utils/useBackHandler';
 import {listTopic} from '@api/index';
 import {userStore} from '@store/userStore';
 
 const TopicPanel = () => {
   const styles = useStyles();
   const navigation = useNavigation();
+  useBackHandler();
 
   const [isPermisOK, setIsPermisOK] = useState(false);
   const [linkVisible, setLinkVisible] = useState(false);
@@ -34,7 +31,7 @@ const TopicPanel = () => {
     getList();
   };
 
-  const clickItem = item => {
+  const clickItem = (item) => {
     if (!userStore.isUsered) {
       MessageBox.show({
         title: '',
@@ -60,24 +57,21 @@ const TopicPanel = () => {
   };
 
   const getList = () => {
-    listTopic({pageNum, pageSize}).then(res => {
+    listTopic({pageNum, pageSize}).then((res) => {
       if (!res || !res.rows) return;
       setDataList(
-        res.rows.map(v => ({...v, value: v.name, count: v.fontSize})),
+        res.rows.map((v) => ({...v, value: v.name, count: v.fontSize})),
       );
       // update page num
       if (res.rows.length < pageSize || pageNum * pageSize == res.total) {
         setPageNum(1);
         return;
       }
-      setPageNum(pre => pre + 1);
+      setPageNum((pre) => pre + 1);
     });
   };
 
   useEffect(() => {
-    // 禁用系统返回键
-    BackHandler.addEventListener('hardwareBackPress', () => true);
-
     getList();
 
     requestPermissions()
@@ -100,7 +94,8 @@ const TopicPanel = () => {
     <ImageBackground
       style={{flex: 1}}
       source={require('@assets/image/topic_bg.jpg')}
-      resizeMode="cover">
+      resizeMode="cover"
+    >
       <View style={styles.container}>
         <View style={styles.topicWrap}>
           <TagCloud
@@ -110,6 +105,16 @@ const TopicPanel = () => {
             renderer={ItemRenderer}
           />
         </View>
+
+        <Button containerStyle={styles.btnWrap} raised onPress={changeTopics}>
+          <Icon
+            name="refresh"
+            color="white"
+            size={20}
+            style={{marginRight: 2}}
+          />
+          换一批
+        </Button>
 
         <LoginUser />
 
@@ -130,13 +135,13 @@ const TopicPanel = () => {
 
 export default observer(TopicPanel);
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   container: {
     flex: 1,
   },
 
   topicWrap: {
-    paddingHorizontal: 200,
+    paddingHorizontal: 150,
     paddingBottom: 25,
     flex: 1,
     justifyContent: 'center',
@@ -150,5 +155,11 @@ const useStyles = makeStyles(theme => ({
   },
   tagText: {
     fontWeight: 'bold',
+  },
+
+  btnWrap: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
   },
 }));

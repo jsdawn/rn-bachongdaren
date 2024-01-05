@@ -30,7 +30,7 @@
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
             android:exported="true"
-            android:label="宫司大人"
+            android:label="倾亭"
             android:launchMode="singleTask"
             android:screenOrientation="fullSensor"
             android:windowSoftInputMode="adjustResize">

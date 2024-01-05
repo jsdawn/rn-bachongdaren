@@ -5,11 +5,9 @@ import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {Text} from '@rneui/themed';
 import MessageBox from './MessageBox';
-import MsgToast from './MsgToast';
 import UserLoginDialog from './UserLoginDialog';
 
 import {userLogout} from '@api/index';
-import {appStore} from '@store/appStore';
 import {userStore} from '@store/userStore';
 
 const LoginUser = ({showLogout = true}) => {
@@ -25,8 +23,7 @@ const LoginUser = ({showLogout = true}) => {
         userLogout().catch(() => {}); // logout api
         // keep token
         setTimeout(() => {
-          appStore.setUserToken('');
-          userStore.clearUser();
+          userStore.clearUserCache();
           done();
           if (route.name != 'TopicPanel') {
             navigation.navigate('TopicPanel');
@@ -54,7 +51,8 @@ const LoginUser = ({showLogout = true}) => {
           style={styles.loginWrap}
           onPress={() => {
             setVisible(true);
-          }}>
+          }}
+        >
           <Text style={styles.loginText}>密码登录</Text>
         </TouchableOpacity>
       )}
@@ -63,7 +61,7 @@ const LoginUser = ({showLogout = true}) => {
       <UserLoginDialog
         visible={visible}
         setVisible={setVisible}
-        onSuccess={data => {
+        onSuccess={(data) => {
           setTimeout(() => {
             MessageBox.show({
               title: '',

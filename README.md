@@ -202,7 +202,7 @@ useEffect(() => {
 
 ## 安卓版本
 
-```
+```xml
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"

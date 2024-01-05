@@ -5,6 +5,7 @@ import errorCode from './errorCode';
 import {tansParams} from './index';
 
 import {appStore} from '@store/appStore';
+import {userStore} from '@store/userStore';
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8';
 // 创建axios实例
@@ -17,7 +18,7 @@ const service = axios.create({
 
 // request拦截器
 service.interceptors.request.use(
-  config => {
+  (config) => {
     // 是否需要设置 token
     const isToken = (config.headers || {}).isToken === false;
     // 是否需要防止数据重复提交
@@ -26,8 +27,8 @@ service.interceptors.request.use(
     if (appStore.machineToken) {
       config.headers['machine_token'] = appStore.machineToken;
     }
-    if (appStore.userToken && !isToken) {
-      config.headers['Authorization'] = appStore.userToken;
+    if (userStore.userToken && !isToken) {
+      config.headers['Authorization'] = userStore.userToken;
     }
 
     // get请求映射params参数
@@ -87,7 +88,7 @@ service.interceptors.request.use(
     }
     return config;
   },
-  error => {
+  (error) => {
     console.log(error);
     Promise.reject(error);
   },
@@ -95,7 +96,7 @@ service.interceptors.request.use(
 
 // 响应拦截器;
 service.interceptors.response.use(
-  res => {
+  (res) => {
     // 未设置状态码则默认成功状态
     const code = res.data.code || 200;
     // 获取错误信息
@@ -124,7 +125,7 @@ service.interceptors.response.use(
       return Promise.resolve(res.data);
     }
   },
-  error => {
+  (error) => {
     console.log('err' + error);
     let {message} = error;
     if (message == 'Network Error') {
